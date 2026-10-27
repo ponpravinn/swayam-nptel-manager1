@@ -2,24 +2,26 @@
 FROM maven:3.9.6-eclipse-temurin-17 AS builder
 WORKDIR /app
 
-# Cache dependencies
+# Copy pom and source code
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
-
-# Build application source code
 COPY src ./src
+
+# Build production JAR without running tests
 RUN mvn clean package -DskipTests -B
 
 # Stage 2: Lightweight JRE 17 runtime for production
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
-# Run as non-root user for security
-RUN addgroup --system spring && adduser --system spring --ingroup spring
-USER spring:spring
+# Create spring user and data directory with full write permissions for H2 database
+RUN addgroup --system spring && adduser --system spring --ingroup spring && \
+    mkdir -p /app/data && \
+    chown -R spring:spring /app
 
-# Copy built jar from builder stage
-COPY --from=builder /app/target/nptel-manager-*.jar app.jar
+# Copy built jar from builder stage with correct ownership
+COPY --chown=spring:spring --from=builder /app/target/nptel-manager-1.0.0.jar /app/app.jar
+
+USER spring:spring
 
 # Environment defaults
 ENV PORT=8080
@@ -27,4 +29,4 @@ ENV SPRING_PROFILES_ACTIVE=default
 
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar /app/app.jar"]
+ENTRYPOINT ["sh", "-c", "java -jar /app/app.jar --server.port=${PORT:-8080}"]
