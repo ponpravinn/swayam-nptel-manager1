@@ -12,10 +12,15 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Optional;
 
 /**
- * Seeds demo data on startup if database is empty.
- * Creates demo admin, demo student, sample courses, assignments, and examination data.
+ * Seeds authentic SWAYAM NPTEL courses and assignments into the database.
+ * Reflects real student coursework:
+ * 1. The Joy of Computing using Python (1st Year - Completed)
+ * 2. Introduction to Internet of Things (IoT) (Current Semester - Active)
+ * 3. Organizational Behaviour (Current Semester - Active)
+ * 4. Programming in Java & Cloud Computing (Available in Catalog)
  */
 @Component
 @RequiredArgsConstructor
@@ -33,161 +38,273 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (userRepository.count() > 0) {
-            log.info("Database already has data. Skipping seed.");
-            return;
+        log.info("Checking and seeding authentic SWAYAM NPTEL course data...");
+
+        // 1. Ensure Admin and Student accounts exist
+        User admin = userRepository.findByEmail("admin@nptelmanager.com")
+            .orElseGet(() -> userRepository.save(User.builder()
+                .fullName("NPTEL Admin / SPOC")
+                .email("admin@nptelmanager.com")
+                .password(passwordEncoder.encode("Admin@123"))
+                .role(User.Role.ADMIN)
+                .enabled(true)
+                .build()));
+
+        User student = userRepository.findByEmail("student@demo.com")
+            .orElseGet(() -> userRepository.save(User.builder()
+                .fullName("Demo Student")
+                .email("student@demo.com")
+                .password(passwordEncoder.encode("Student@123"))
+                .role(User.Role.STUDENT)
+                .college("Engineering College")
+                .department("Computer Science and Engineering")
+                .rollNumber("CSE202401")
+                .enabled(true)
+                .build()));
+
+        // 2. Course: The Joy of Computing using Python (1st Year - Completed)
+        if (!courseRepository.existsByCourseCode("noc23-cs108")) {
+            Course joyPython = courseRepository.save(Course.builder()
+                .courseName("The Joy of Computing using Python")
+                .courseCode("noc23-cs108")
+                .instructor("Prof. Sudarshan Iyengar")
+                .duration("12 Weeks")
+                .startDate(LocalDate.of(2023, 1, 23))
+                .endDate(LocalDate.of(2023, 4, 14))
+                .semester("Jan-Apr 2023 (1st Year)")
+                .courseUrl("https://onlinecourses.nptel.ac.in/noc23_cs108/preview")
+                .isAdminCreated(true)
+                .build());
+
+            studentCourseRepository.save(StudentCourse.builder()
+                .student(student).course(joyPython)
+                .enrollmentStatus(StudentCourse.EnrollmentStatus.COMPLETED)
+                .build());
+
+            Assignment a1 = createAssignment(joyPython, 1, "Week 1 - Scratch & Python Basics",
+                "Introduction to variables, loops, and turtle graphics in Python.",
+                LocalDate.of(2023, 1, 23), LocalDateTime.of(2023, 2, 1, 23, 59),
+                "https://onlinecourses.nptel.ac.in/noc23_cs108/unit?unit=1");
+            createStudentAssignment(student, a1, StudentAssignment.AssignmentStatus.COMPLETED, 95.0, LocalDateTime.of(2023, 1, 30, 18, 30));
+
+            Assignment a2 = createAssignment(joyPython, 2, "Week 2 - Lists, Tuples & Rock Paper Scissors",
+                "Working with collection data structures and building interactive games.",
+                LocalDate.of(2023, 1, 30), LocalDateTime.of(2023, 2, 8, 23, 59),
+                "https://onlinecourses.nptel.ac.in/noc23_cs108/unit?unit=2");
+            createStudentAssignment(student, a2, StudentAssignment.AssignmentStatus.COMPLETED, 90.0, LocalDateTime.of(2023, 2, 6, 20, 15));
+
+            Assignment a3 = createAssignment(joyPython, 3, "Week 3 - Functions & The Monty Hall Simulation",
+                "Modular programming, random simulations, and probability paradoxes in Python.",
+                LocalDate.of(2023, 2, 6), LocalDateTime.of(2023, 2, 15, 23, 59),
+                "https://onlinecourses.nptel.ac.in/noc23_cs108/unit?unit=3");
+            createStudentAssignment(student, a3, StudentAssignment.AssignmentStatus.COMPLETED, 92.0, LocalDateTime.of(2023, 2, 14, 21, 0));
+
+            createExam(joyPython, "Apr 2023 Session",
+                LocalDate.of(2023, 2, 1), LocalDate.of(2023, 2, 20),
+                new BigDecimal("1000.00"), "https://examform.nptel.ac.in",
+                LocalDate.of(2023, 4, 29), LocalTime.of(9, 30), LocalTime.of(12, 30),
+                "Online Proctored / Center Based", "TCS iON Digital Zone",
+                "Sector 62, Tech City", "Chennai",
+                "Hall ticket and government ID mandatory. Certification issued by IIT Ropar.",
+                student, ExaminationRegistration.RegistrationStatus.REGISTERED,
+                ExaminationRegistration.PaymentStatus.PAID);
         }
 
-        log.info("Seeding demo data...");
+        // 3. Course: Introduction to Internet of Things (IoT) (Current Semester - Active)
+        if (!courseRepository.existsByCourseCode("noc24-cs102")) {
+            Course iotCourse = courseRepository.save(Course.builder()
+                .courseName("Introduction to Internet of Things")
+                .courseCode("noc24-cs102")
+                .instructor("Prof. Sudip Misra (IIT Kharagpur)")
+                .duration("12 Weeks")
+                .startDate(LocalDate.now().minusWeeks(4))
+                .endDate(LocalDate.now().plusWeeks(8))
+                .semester("Current Semester")
+                .courseUrl("https://onlinecourses.nptel.ac.in/noc24_cs102/preview")
+                .isAdminCreated(true)
+                .build());
 
-        // --- Admin ---
-        User admin = userRepository.save(User.builder()
-            .fullName("NPTEL Admin")
-            .email("admin@nptelmanager.com")
-            .password(passwordEncoder.encode("Admin@123"))
-            .role(User.Role.ADMIN)
-            .enabled(true)
-            .build());
+            studentCourseRepository.save(StudentCourse.builder()
+                .student(student).course(iotCourse)
+                .enrollmentStatus(StudentCourse.EnrollmentStatus.ENROLLED)
+                .build());
 
-        // --- Demo Student ---
-        User student = userRepository.save(User.builder()
-            .fullName("Demo Student")
-            .email("student@demo.com")
-            .password(passwordEncoder.encode("Student@123"))
-            .role(User.Role.STUDENT)
-            .college("Demo Engineering College")
-            .department("Computer Science")
-            .rollNumber("CS2023001")
-            .enabled(true)
-            .build());
+            Assignment a1 = createAssignment(iotCourse, 1, "Week 1 Assignment - IoT Architecture & Sensing",
+                "Sensors, actuators, and foundational IoT reference architecture.",
+                LocalDate.now().minusWeeks(3), LocalDateTime.now().minusDays(10),
+                "https://onlinecourses.nptel.ac.in/noc24_cs102/unit?unit=1");
+            createStudentAssignment(student, a1, StudentAssignment.AssignmentStatus.COMPLETED, 88.0, LocalDateTime.now().minusDays(11));
 
-        // --- Courses ---
-        Course javaCourse = courseRepository.save(Course.builder()
-            .courseName("Programming in Java")
-            .courseCode("NPTEL-JAVA-2024")
-            .instructor("Prof. Debasis Samanta")
-            .duration("12 Weeks")
-            .startDate(LocalDate.of(2024, 7, 22))
-            .endDate(LocalDate.of(2024, 10, 11))
-            .semester("Jul-Oct 2024")
-            .courseUrl("https://onlinecourses.nptel.ac.in/noc24_cs62/preview")
+            Assignment a2 = createAssignment(iotCourse, 2, "Week 2 Assignment - Wireless Communication Protocols",
+                "Analysis of BLE, Zigbee, LoRaWAN, and IPv6 over Low-Power WPAN.",
+                LocalDate.now().minusWeeks(2), LocalDateTime.now().minusDays(3),
+                "https://onlinecourses.nptel.ac.in/noc24_cs102/unit?unit=2");
+            createStudentAssignment(student, a2, StudentAssignment.AssignmentStatus.COMPLETED, 94.0, LocalDateTime.now().minusDays(4));
+
+            Assignment a3 = createAssignment(iotCourse, 3, "Week 3 Assignment - Arduino & Raspberry Pi Interfacing",
+                "Embedded hardware interfacing, GPIO programming, and serial sensor communication.",
+                LocalDate.now().minusWeeks(1), LocalDateTime.now().plusDays(3), // DUE IN 3 DAYS!
+                "https://onlinecourses.nptel.ac.in/noc24_cs102/unit?unit=3");
+            createStudentAssignment(student, a3, StudentAssignment.AssignmentStatus.IN_PROGRESS, null, null);
+
+            Assignment a4 = createAssignment(iotCourse, 4, "Week 4 Assignment - MQTT Protocol & Cloud IoT",
+                "Publish/Subscribe messaging architectures, broker setups, and cloud analytics telemetry.",
+                LocalDate.now(), LocalDateTime.now().plusDays(7), // DUE IN 7 DAYS!
+                "https://onlinecourses.nptel.ac.in/noc24_cs102/unit?unit=4");
+            createStudentAssignment(student, a4, StudentAssignment.AssignmentStatus.NOT_STARTED, null, null);
+
+            createExam(iotCourse, "Upcoming Examination Session",
+                LocalDate.now().minusDays(10), LocalDate.now().plusDays(6), // Registration closes in 6 days!
+                new BigDecimal("1000.00"), "https://examform.nptel.ac.in",
+                LocalDate.now().plusDays(28), LocalTime.of(9, 30), LocalTime.of(12, 30),
+                "Center Based Computer Exam", "TCS iON Digital Zone",
+                "Plot No 14, Guindy Industrial Estate", "Chennai",
+                "Report at test center 45 minutes prior. Original college/Aadhaar ID required. Mobile phones strictly prohibited.",
+                student, ExaminationRegistration.RegistrationStatus.REGISTRATION_OPEN,
+                ExaminationRegistration.PaymentStatus.NOT_PAID);
+        }
+
+        // 4. Course: Organizational Behaviour (Current Semester - Active)
+        if (!courseRepository.existsByCourseCode("noc24-mg45")) {
+            Course obCourse = courseRepository.save(Course.builder()
+                .courseName("Organizational Behaviour")
+                .courseCode("noc24-mg45")
+                .instructor("Prof. Susmita Mukhopadhyay (IIT Kharagpur)")
+                .duration("8 Weeks")
+                .startDate(LocalDate.now().minusWeeks(3))
+                .endDate(LocalDate.now().plusWeeks(5))
+                .semester("Current Semester")
+                .courseUrl("https://onlinecourses.nptel.ac.in/noc24_mg45/preview")
+                .isAdminCreated(true)
+                .build());
+
+            studentCourseRepository.save(StudentCourse.builder()
+                .student(student).course(obCourse)
+                .enrollmentStatus(StudentCourse.EnrollmentStatus.ENROLLED)
+                .build());
+
+            Assignment a1 = createAssignment(obCourse, 1, "Week 1 - Personality, Perception and Attitude",
+                "Core behavioral dynamics, Big Five personality traits, and attribution theory.",
+                LocalDate.now().minusWeeks(2), LocalDateTime.now().minusDays(5),
+                "https://onlinecourses.nptel.ac.in/noc24_mg45/unit?unit=1");
+            createStudentAssignment(student, a1, StudentAssignment.AssignmentStatus.COMPLETED, 90.0, LocalDateTime.now().minusDays(6));
+
+            Assignment a2 = createAssignment(obCourse, 2, "Week 2 - Motivation Theories & Workplace Dynamics",
+                "Maslow hierarchy, Herzberg dual-factor theory, and equity in modern organizations.",
+                LocalDate.now().minusWeeks(1), LocalDateTime.now().plusDays(4), // DUE IN 4 DAYS!
+                "https://onlinecourses.nptel.ac.in/noc24_mg45/unit?unit=2");
+            createStudentAssignment(student, a2, StudentAssignment.AssignmentStatus.IN_PROGRESS, null, null);
+
+            Assignment a3 = createAssignment(obCourse, 3, "Week 3 - Leadership, Conflict Management & Team Culture",
+                "Transformational leadership, team cohesion, and negotiation strategies in technical teams.",
+                LocalDate.now(), LocalDateTime.now().plusDays(10),
+                "https://onlinecourses.nptel.ac.in/noc24_mg45/unit?unit=3");
+            createStudentAssignment(student, a3, StudentAssignment.AssignmentStatus.NOT_STARTED, null, null);
+
+            createExam(obCourse, "Upcoming Examination Session",
+                LocalDate.now().minusDays(8), LocalDate.now().plusDays(12),
+                new BigDecimal("1000.00"), "https://examform.nptel.ac.in",
+                LocalDate.now().plusDays(29), LocalTime.of(14, 0), LocalTime.of(17, 0),
+                "Center Based Computer Exam", "TCS iON Digital Zone",
+                "Guindy Tech Park", "Chennai",
+                "Afternoon Shift (2:00 PM - 5:00 PM). Carry printed admit card and government ID proof.",
+                student, ExaminationRegistration.RegistrationStatus.REGISTRATION_OPEN,
+                ExaminationRegistration.PaymentStatus.PAID);
+        }
+
+        // 5. Course: Cloud Computing (Published in Catalog for Enrollment)
+        if (!courseRepository.existsByCourseCode("noc24-cs78")) {
+            Course cloudCourse = courseRepository.save(Course.builder()
+                .courseName("Cloud Computing")
+                .courseCode("noc24-cs78")
+                .instructor("Prof. Soumya Kanti Ghosh (IIT Kharagpur)")
+                .duration("8 Weeks")
+                .startDate(LocalDate.now().minusWeeks(2))
+                .endDate(LocalDate.now().plusWeeks(6))
+                .semester("Current Semester")
+                .courseUrl("https://onlinecourses.nptel.ac.in/noc24_cs78/preview")
+                .isAdminCreated(true)
+                .build());
+
+            createAssignment(cloudCourse, 1, "Week 1 - Virtualization and Hypervisors",
+                "Hardware virtualization, type-1 vs type-2 hypervisors, and containerization fundamentals.",
+                LocalDate.now().minusWeeks(1), LocalDateTime.now().plusDays(5),
+                "https://onlinecourses.nptel.ac.in/noc24_cs78/unit?unit=1");
+
+            createAssignment(cloudCourse, 2, "Week 2 - Cloud Storage Architectures & AWS S3",
+                "Block, object, and file storage models, consistency, and replication policies.",
+                LocalDate.now(), LocalDateTime.now().plusDays(11),
+                "https://onlinecourses.nptel.ac.in/noc24_cs78/unit?unit=2");
+
+            createExam(cloudCourse, "Upcoming Examination Session",
+                LocalDate.now().minusDays(5), LocalDate.now().plusDays(15),
+                new BigDecimal("1000.00"), "https://examform.nptel.ac.in",
+                LocalDate.now().plusDays(35), LocalTime.of(9, 30), LocalTime.of(12, 30),
+                "Center Based Computer Exam", "TCS iON Digital Zone",
+                "Guindy Tech Park", "Chennai",
+                "Morning shift examination. Certified by IIT Kharagpur.",
+                null, null, null);
+        }
+
+        log.info("✅ Authentic SWAYAM NPTEL courses successfully seeded!");
+    }
+
+    private Assignment createAssignment(Course course, int number, String title, String desc,
+                                        LocalDate release, LocalDateTime due, String url) {
+        return assignmentRepository.save(Assignment.builder()
+            .course(course)
+            .assignmentNumber(number)
+            .title(title)
+            .description(desc)
+            .releaseDate(release)
+            .dueDate(due)
+            .submissionUrl(url)
             .isAdminCreated(true)
             .build());
+    }
 
-        Course dsCourse = courseRepository.save(Course.builder()
-            .courseName("Data Structures and Algorithms Using Python")
-            .courseCode("NPTEL-DSA-2024")
-            .instructor("Prof. Madhavan Mukund")
-            .duration("8 Weeks")
-            .startDate(LocalDate.of(2024, 7, 22))
-            .endDate(LocalDate.of(2024, 9, 13))
-            .semester("Jul-Oct 2024")
-            .courseUrl("https://onlinecourses.nptel.ac.in/noc24_cs63/preview")
-            .isAdminCreated(true)
-            .build());
-
-        // Enroll demo student
-        studentCourseRepository.save(StudentCourse.builder()
-            .student(student).course(javaCourse)
-            .enrollmentStatus(StudentCourse.EnrollmentStatus.ENROLLED).build());
-        studentCourseRepository.save(StudentCourse.builder()
-            .student(student).course(dsCourse)
-            .enrollmentStatus(StudentCourse.EnrollmentStatus.ENROLLED).build());
-
-        // --- Assignments for Java Course ---
-        Assignment javaA1 = assignmentRepository.save(Assignment.builder()
-            .title("Week 1 Assignment - Basics of Java")
-            .assignmentNumber(1)
-            .course(javaCourse)
-            .description("[SAMPLE DATA] Introduction to Java programming basics")
-            .releaseDate(LocalDate.of(2024, 7, 22))
-            .dueDate(LocalDateTime.of(2024, 7, 31, 23, 59))
-            .submissionUrl("https://onlinecourses.nptel.ac.in/noc24_cs62/unit?unit=1")
-            .isAdminCreated(true)
-            .build());
-
-        Assignment javaA2 = assignmentRepository.save(Assignment.builder()
-            .title("Week 2 Assignment - OOP Concepts")
-            .assignmentNumber(2)
-            .course(javaCourse)
-            .description("[SAMPLE DATA] Classes, objects, inheritance, and polymorphism")
-            .releaseDate(LocalDate.of(2024, 7, 29))
-            .dueDate(LocalDateTime.of(2024, 8, 7, 23, 59))
-            .submissionUrl("https://onlinecourses.nptel.ac.in/noc24_cs62/unit?unit=2")
-            .isAdminCreated(true)
-            .build());
-
-        Assignment javaA3 = assignmentRepository.save(Assignment.builder()
-            .title("Week 3 Assignment - Collections Framework")
-            .assignmentNumber(3)
-            .course(javaCourse)
-            .description("[SAMPLE DATA] Lists, Sets, Maps, and iterators")
-            .releaseDate(LocalDate.of(2024, 8, 5))
-            .dueDate(LocalDateTime.now().plusDays(5))   // upcoming
-            .submissionUrl("https://onlinecourses.nptel.ac.in/noc24_cs62/unit?unit=3")
-            .isAdminCreated(true)
-            .build());
-
-        // Student assignment statuses
+    private void createStudentAssignment(User student, Assignment assignment,
+                                         StudentAssignment.AssignmentStatus status,
+                                         Double marks, LocalDateTime completedAt) {
         studentAssignmentRepository.save(StudentAssignment.builder()
-            .student(student).assignment(javaA1)
-            .status(StudentAssignment.AssignmentStatus.COMPLETED)
-            .completedAt(LocalDateTime.of(2024, 7, 29, 15, 0))
-            .marksObtained(85.0).build());
-
-        studentAssignmentRepository.save(StudentAssignment.builder()
-            .student(student).assignment(javaA2)
-            .status(StudentAssignment.AssignmentStatus.COMPLETED)
-            .completedAt(LocalDateTime.of(2024, 8, 5, 10, 0))
-            .marksObtained(90.0).build());
-
-        studentAssignmentRepository.save(StudentAssignment.builder()
-            .student(student).assignment(javaA3)
-            .status(StudentAssignment.AssignmentStatus.IN_PROGRESS).build());
-
-        // --- DSA Assignment ---
-        Assignment dsaA1 = assignmentRepository.save(Assignment.builder()
-            .title("Week 1 Assignment - Arrays and Lists")
-            .assignmentNumber(1)
-            .course(dsCourse)
-            .description("[SAMPLE DATA] Basic data structure operations")
-            .releaseDate(LocalDate.of(2024, 7, 22))
-            .dueDate(LocalDateTime.now().plusDays(2))  // urgent
-            .isAdminCreated(true)
+            .student(student)
+            .assignment(assignment)
+            .status(status)
+            .marksObtained(marks)
+            .completedAt(completedAt)
             .build());
+    }
 
-        studentAssignmentRepository.save(StudentAssignment.builder()
-            .student(student).assignment(dsaA1)
-            .status(StudentAssignment.AssignmentStatus.NOT_STARTED).build());
-
-        // --- Examination ---
-        Examination javaExam = examinationRepository.save(Examination.builder()
-            .course(javaCourse)
-            .examSession("Oct 2024")
-            .registrationOpenDate(LocalDate.now().minusDays(5))
-            .registrationCloseDate(LocalDate.now().plusDays(10))
-            .registrationFee(new BigDecimal("1000.00"))
-            .registrationUrl("https://examform.nptel.ac.in")
-            .examDate(LocalDate.now().plusDays(30))
-            .examStartTime(LocalTime.of(9, 30))
-            .examEndTime(LocalTime.of(12, 30))
-            .examMode("Online Proctored / Centre Based")
-            .examCenterName("[SAMPLE] Demo Exam Centre")
-            .examCenterAddress("[SAMPLE] 123 Main Street, Tech Park")
-            .city("Chennai")
-            .importantInstructions("[SAMPLE DATA] Bring your Hall Ticket and any valid Government ID proof. Report 30 minutes before exam. No electronic devices allowed.")
+    private void createExam(Course course, String session, LocalDate openDate, LocalDate closeDate,
+                            BigDecimal fee, String url, LocalDate examDate, LocalTime start, LocalTime end,
+                            String mode, String centerName, String centerAddress, String city, String instructions,
+                            User student, ExaminationRegistration.RegistrationStatus regStatus,
+                            ExaminationRegistration.PaymentStatus payStatus) {
+        Examination exam = examinationRepository.save(Examination.builder()
+            .course(course)
+            .examSession(session)
+            .registrationOpenDate(openDate)
+            .registrationCloseDate(closeDate)
+            .registrationFee(fee)
+            .registrationUrl(url)
+            .examDate(examDate)
+            .examStartTime(start)
+            .examEndTime(end)
+            .examMode(mode)
+            .examCenterName(centerName)
+            .examCenterAddress(centerAddress)
+            .city(city)
+            .importantInstructions(instructions)
             .isPublished(true)
             .build());
 
-        examRegistrationRepository.save(ExaminationRegistration.builder()
-            .student(student)
-            .examination(javaExam)
-            .registrationStatus(ExaminationRegistration.RegistrationStatus.REGISTRATION_OPEN)
-            .paymentStatus(ExaminationRegistration.PaymentStatus.NOT_PAID)
-            .build());
-
-        log.info("✅ Demo data seeded successfully!");
-        log.info("   Admin: admin@nptelmanager.com / Admin@123");
-        log.info("   Student: student@demo.com / Student@123");
+        if (student != null && regStatus != null) {
+            examRegistrationRepository.save(ExaminationRegistration.builder()
+                .student(student)
+                .examination(exam)
+                .registrationStatus(regStatus)
+                .paymentStatus(payStatus)
+                .build());
+        }
     }
 }
