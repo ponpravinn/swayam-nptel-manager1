@@ -16,6 +16,10 @@ public class CourseService {
 
     private final CourseRepository courseRepository;
     private final StudentCourseRepository studentCourseRepository;
+    private final AssignmentRepository assignmentRepository;
+    private final StudentAssignmentRepository studentAssignmentRepository;
+    private final ExaminationRepository examinationRepository;
+    private final ExaminationRegistrationRepository examRegRepo;
 
     @Transactional(readOnly = true)
     public List<StudentCourse> getStudentCourses(User student) {
@@ -33,7 +37,8 @@ public class CourseService {
     }
 
     /**
-     * Student adds (or enrolls in) a course. Creates course if not existing.
+     * Student enrolls in an official course.
+     * Automatically links all existing course assignments and examination details to this student!
      */
     public StudentCourse enrollInCourse(User student, Course course) {
         Course targetCourse = course;
@@ -52,7 +57,34 @@ public class CourseService {
             .course(targetCourse)
             .enrollmentStatus(StudentCourse.EnrollmentStatus.ENROLLED)
             .build();
-        return studentCourseRepository.save(sc);
+        StudentCourse savedSc = studentCourseRepository.save(sc);
+
+        // 1. Automatically populate all assignments for this course to the student
+        List<Assignment> courseAssignments = assignmentRepository.findByCourseId(targetCourse.getId());
+        for (Assignment assignment : courseAssignments) {
+            if (studentAssignmentRepository.findByStudentAndAssignment(student, assignment).isEmpty()) {
+                studentAssignmentRepository.save(StudentAssignment.builder()
+                    .student(student)
+                    .assignment(assignment)
+                    .status(StudentAssignment.AssignmentStatus.NOT_STARTED)
+                    .build());
+            }
+        }
+
+        // 2. Automatically link official examination records for this course to the student
+        List<Examination> courseExams = examinationRepository.findByCourseId(targetCourse.getId());
+        for (Examination exam : courseExams) {
+            if (examRegRepo.findByStudentAndExamination(student, exam).isEmpty()) {
+                examRegRepo.save(ExaminationRegistration.builder()
+                    .student(student)
+                    .examination(exam)
+                    .registrationStatus(ExaminationRegistration.RegistrationStatus.REGISTRATION_OPEN)
+                    .paymentStatus(ExaminationRegistration.PaymentStatus.NOT_PAID)
+                    .build());
+            }
+        }
+
+        return savedSc;
     }
 
     public Course saveCourse(Course course) {

@@ -78,25 +78,12 @@ public class AssignmentController {
     }
 
     @GetMapping("/add")
-    public String addForm(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User student = userService.getByEmail(userDetails.getUsername());
-        model.addAttribute("assignment", new Assignment());
-        model.addAttribute("courses", courseService.getStudentCourses(student));
-        model.addAttribute("pageTitle", "Add Assignment");
-        return "assignments/form";
+    public String addForm() {
+        return "redirect:/assignments";
     }
 
     @PostMapping("/add")
-    public String addAssignment(@AuthenticationPrincipal UserDetails userDetails,
-                                @ModelAttribute Assignment assignment,
-                                @RequestParam Long courseId,
-                                RedirectAttributes redirectAttrs) {
-        User student = userService.getByEmail(userDetails.getUsername());
-        Course course = courseService.findById(courseId)
-            .orElseThrow(() -> new RuntimeException("Course not found"));
-        assignment.setCourse(course);
-        assignmentService.addAssignment(student, assignment);
-        redirectAttrs.addFlashAttribute("successMsg", "Assignment added successfully!");
+    public String addAssignment() {
         return "redirect:/assignments";
     }
 

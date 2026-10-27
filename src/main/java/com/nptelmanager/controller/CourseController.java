@@ -26,31 +26,23 @@ public class CourseController {
         User student = userService.getByEmail(userDetails.getUsername());
         List<StudentCourse> myCourses = courseService.getStudentCourses(student);
         List<Course> adminCourses = courseService.getAllAdminCourses();
+        java.util.Set<Long> enrolledCourseIds = myCourses.stream()
+            .map(sc -> sc.getCourse().getId())
+            .collect(java.util.stream.Collectors.toSet());
         model.addAttribute("myCourses", myCourses);
         model.addAttribute("adminCourses", adminCourses);
-        model.addAttribute("newCourse", new Course());
+        model.addAttribute("enrolledCourseIds", enrolledCourseIds);
         model.addAttribute("student", student);
         return "courses/list";
     }
 
     @GetMapping("/add")
-    public String addCourseForm(Model model) {
-        model.addAttribute("course", new Course());
-        model.addAttribute("pageTitle", "Add Course");
-        return "courses/form";
+    public String addCourseForm() {
+        return "redirect:/courses";
     }
 
     @PostMapping("/add")
-    public String addCourse(@AuthenticationPrincipal UserDetails userDetails,
-                            @ModelAttribute Course course,
-                            RedirectAttributes redirectAttrs) {
-        User student = userService.getByEmail(userDetails.getUsername());
-        try {
-            courseService.enrollInCourse(student, course);
-            redirectAttrs.addFlashAttribute("successMsg", "Course added successfully!");
-        } catch (IllegalArgumentException e) {
-            redirectAttrs.addFlashAttribute("errorMsg", e.getMessage());
-        }
+    public String addCourse() {
         return "redirect:/courses";
     }
 
