@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(
+          pageTitle='Admin - Assignment',
+          activePage='admin',
+          content=~{::content}
+      )}">
+<th:block th:fragment="content">
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header py-3 px-4 border-bottom">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-clipboard-check text-primary me-2"></i>Add Assignment (Admin)
+                </h5>
+                <p class="text-muted small mb-0 mt-1">This assignment will be published to all enrolled students.</p>
+            </div>
+            <div class="card-body p-4">
+                <form th:action="@{/admin/assignments/add}" method="post" th:object="${assignment}">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Course *</label>
+                        <select name="courseId" class="form-select" required>
+                            <option value="">Select Course...</option>
+                            <option th:each="c : ${courses}" th:value="${c.id}"
+                                    th:text="${c.courseName}">Course</option>
+                        </select>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label small fw-semibold">Assignment Title *</label>
+                            <input type="text" th:field="*{title}" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Assignment No. *</label>
+                            <input type="number" th:field="*{assignmentNumber}" class="form-control" required min="1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Due Date & Time *</label>
+                            <input type="datetime-local" th:field="*{dueDate}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Release Date</label>
+                            <input type="date" th:field="*{releaseDate}" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Submission URL</label>
+                            <input type="url" th:field="*{submissionUrl}" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Description</label>
+                            <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-1"></i>Publish Assignment
+                        </button>
+                        <a th:href="@{/admin}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>
+</html>
+
+
+

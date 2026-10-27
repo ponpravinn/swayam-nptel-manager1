@@ -1,0 +1,35 @@
+# Git ignore file for NPTEL Manager
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# H2 database files
+data/
+*.mv.db
+*.trace.db
+
+# IDE files
+.idea/
+*.iml
+.vscode/settings.json
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Sensitive config
+.env
+application-local.properties
+
+# Log files
+*.log
+logs/

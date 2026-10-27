@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(
+          pageTitle='Admin - Exam Form',
+          activePage='admin',
+          content=~{::content}
+      )}">
+<th:block th:fragment="content">
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header py-3 px-4 border-bottom">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-journal-check text-primary me-2"></i>
+                    <span th:text="${examination.id != null ? 'Edit Examination' : 'Add Examination (Admin)'}">Exam</span>
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form th:action="${examination.id != null} ? @{/admin/examinations/edit/{id}(id=${examination.id})} : @{/admin/examinations/add}"
+                      method="post" th:object="${examination}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Course *</label>
+                        <select name="courseId" class="form-select" required>
+                            <option value="">Select Course...</option>
+                            <option th:each="c : ${courses}" th:value="${c.id}"
+                                    th:selected="${examination.course != null and examination.course.id == c.id}"
+                                    th:text="${c.courseName}">Course</option>
+                        </select>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Exam Session *</label>
+                            <input type="text" th:field="*{examSession}" class="form-control"
+                                   placeholder="e.g., Oct 2024" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Registration Fee (â‚¹)</label>
+                            <input type="number" th:field="*{registrationFee}" class="form-control"
+                                   step="0.01" placeholder="1000.00">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Registration Opens</label>
+                            <input type="date" th:field="*{registrationOpenDate}" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Registration Closes</label>
+                            <input type="date" th:field="*{registrationCloseDate}" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Registration URL</label>
+                            <input type="url" th:field="*{registrationUrl}" class="form-control"
+                                   placeholder="https://examform.nptel.ac.in">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Exam Date</label>
+                            <input type="date" th:field="*{examDate}" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Start Time</label>
+                            <input type="time" th:field="*{examStartTime}" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">End Time</label>
+                            <input type="time" th:field="*{examEndTime}" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Exam Mode</label>
+                            <input type="text" th:field="*{examMode}" class="form-control"
+                                   placeholder="Online Proctored / Centre Based">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">City</label>
+                            <input type="text" th:field="*{city}" class="form-control" placeholder="Chennai">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Exam Center Name</label>
+                            <input type="text" th:field="*{examCenterName}" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Exam Center Address</label>
+                            <input type="text" th:field="*{examCenterAddress}" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Google Maps URL</label>
+                            <input type="url" th:field="*{mapUrl}" class="form-control"
+                                   placeholder="https://maps.google.com/...">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Important Instructions</label>
+                            <textarea th:field="*{importantInstructions}" class="form-control" rows="4"
+                                      placeholder="Instructions for candidates..."></textarea>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-1"></i>
+                            <span th:text="${examination.id != null ? 'Update Exam' : 'Publish Exam'}">Publish</span>
+                        </button>
+                        <a th:href="@{/admin/examinations}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>
+</html>
+
+
+

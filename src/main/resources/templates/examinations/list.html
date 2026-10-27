@@ -1,0 +1,175 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(
+          pageTitle='Examinations',
+          activePage='examinations',
+          content=~{::content}
+      )}">
+<th:block th:fragment="content">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-journal-check text-primary me-2"></i>Examinations</h4>
+</div>
+
+<!-- My Registered Exams -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header py-2 px-3 border-bottom">
+        <strong>My Examination Tracker</strong>
+        <span class="badge bg-primary ms-2" th:text="${myRegistrations.size()}">0</span>
+    </div>
+    <div class="card-body p-0">
+        <div th:if="${myRegistrations.isEmpty()}" class="text-center py-5 text-muted">
+            <i class="bi bi-journal-x fs-1 opacity-25"></i>
+            <p class="mt-3">No examinations tracked. Add exams from the list below.</p>
+        </div>
+        <div th:if="${!myRegistrations.isEmpty()}" class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Course</th>
+                        <th>Session</th>
+                        <th>Reg. Closes</th>
+                        <th>Exam Date</th>
+                        <th>Fee</th>
+                        <th>Reg. Status</th>
+                        <th>Payment</th>
+                        <th class="pe-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="er : ${myRegistrations}">
+                        <td class="ps-3">
+                            <div class="fw-semibold small" th:text="${er.examination.course.courseName}">Course</div>
+                            <div class="text-muted" style="font-size:0.72rem;"
+                                 th:text="${er.examination.course.courseCode}">CODE</div>
+                        </td>
+                        <td class="small" th:text="${er.examination.examSession}">Session</td>
+                        <td class="small">
+                            <span th:if="${er.examination.registrationCloseDate}"
+                                  th:text="${#temporals.format(er.examination.registrationCloseDate, 'dd MMM yyyy')}">-</span>
+                        </td>
+                        <td class="small">
+                            <span th:if="${er.examination.examDate}"
+                                  th:text="${#temporals.format(er.examination.examDate, 'dd MMM yyyy')}">-</span>
+                            <div th:if="${er.examination.examStartTime}" class="text-muted" style="font-size:0.7rem;"
+                                 th:text="${#temporals.format(er.examination.examStartTime, 'hh:mm a')}">-</div>
+                        </td>
+                        <td class="small fw-semibold"
+                            th:text="${er.examination.registrationFee != null ? 'â‚¹' + er.examination.registrationFee : '-'}">-</td>
+
+                        <!-- Registration Status -->
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${er.registrationStatus.name() == 'REGISTERED'} ? 'bg-success' : (${er.registrationStatus.name() == 'REGISTRATION_OPEN'} ? 'bg-warning text-dark' : (${er.registrationStatus.name() == 'REGISTRATION_CLOSED'} ? 'bg-danger' : 'bg-secondary'))"
+                                  style="font-size:0.7rem;"
+                                  th:text="${er.registrationStatus.name().replace('_',' ')}">STATUS</span>
+                        </td>
+
+                        <!-- Payment Status -->
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${er.paymentStatus.name() == 'PAID'} ? 'bg-success' : (${er.paymentStatus.name() == 'PAYMENT_PENDING'} ? 'bg-warning text-dark' : 'bg-secondary')"
+                                  style="font-size:0.7rem;"
+                                  th:text="${er.paymentStatus.name().replace('_',' ')}">PAYMENT</span>
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="pe-3">
+                            <div class="d-flex gap-1 flex-wrap">
+                                <a th:href="@{/examinations/{id}(id=${er.examination.id})}"
+                                   class="btn btn-sm btn-outline-primary py-1 px-2" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <!-- Mark as Registered -->
+                                <form th:if="${er.registrationStatus.name() != 'REGISTERED'}"
+                                      th:action="@{/examinations/registration-status/{id}(id=${er.examination.id})}"
+                                      method="post" class="d-inline">
+                                    <input type="hidden" name="status" value="REGISTERED">
+                                    <button type="submit" class="btn btn-sm btn-success py-1 px-2" title="Mark Registered">
+                                        <i class="bi bi-check2-circle"></i>
+                                    </button>
+                                </form>
+                                <!-- Mark Fee Paid -->
+                                <form th:if="${er.paymentStatus.name() != 'PAID'}"
+                                      th:action="@{/examinations/payment-status/{id}(id=${er.examination.id})}"
+                                      method="post" class="d-inline">
+                                    <input type="hidden" name="status" value="PAID">
+                                    <button type="submit" class="btn btn-sm btn-info text-white py-1 px-2" title="Mark Fee Paid">
+                                        <i class="bi bi-credit-card"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Available Examinations -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header py-2 px-3 border-bottom">
+        <i class="bi bi-globe me-2 text-info"></i>
+        <strong>Available Examinations</strong>
+        <span class="badge bg-info ms-2" th:text="${allExams.size()}">0</span>
+    </div>
+    <div class="card-body p-0">
+        <div th:if="${allExams.isEmpty()}" class="text-center py-5 text-muted">
+            <p>No examination information available. Admin will publish exam details soon.</p>
+        </div>
+        <div th:if="${!allExams.isEmpty()}" class="row g-3 p-3">
+            <div th:each="exam : ${allExams}" class="col-md-6">
+                <div class="card border shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="fw-bold small mb-0" th:text="${exam.course.courseName}">Course</h6>
+                            <span class="badge bg-light text-dark border small"
+                                  th:text="${exam.examSession}">Session</span>
+                        </div>
+                        <div class="row g-2 mt-1 small">
+                            <div class="col-6" th:if="${exam.registrationCloseDate}">
+                                <div class="text-muted">Reg. Closes</div>
+                                <div class="fw-semibold text-danger"
+                                     th:text="${#temporals.format(exam.registrationCloseDate, 'dd MMM yyyy')}">-</div>
+                            </div>
+                            <div class="col-6" th:if="${exam.registrationFee}">
+                                <div class="text-muted">Fee</div>
+                                <div class="fw-semibold" th:text="'â‚¹' + ${exam.registrationFee}">-</div>
+                            </div>
+                            <div class="col-6" th:if="${exam.examDate}">
+                                <div class="text-muted">Exam Date</div>
+                                <div class="fw-semibold"
+                                     th:text="${#temporals.format(exam.examDate, 'dd MMM yyyy')}">-</div>
+                            </div>
+                            <div class="col-6" th:if="${exam.city}">
+                                <div class="text-muted">City</div>
+                                <div class="fw-semibold" th:text="${exam.city}">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent py-2 px-3 d-flex gap-2">
+                        <a th:href="@{/examinations/{id}(id=${exam.id})}"
+                           class="btn btn-sm btn-outline-primary flex-grow-1">
+                            <i class="bi bi-eye me-1"></i>Details
+                        </a>
+                        <form th:action="@{/examinations/track/{id}(id=${exam.id})}" method="post">
+                            <button type="submit" class="btn btn-sm btn-primary" title="Track This Exam">
+                                <i class="bi bi-plus-lg me-1"></i>Track
+                            </button>
+                        </form>
+                        <a th:if="${exam.registrationUrl}" th:href="${exam.registrationUrl}"
+                           target="_blank" class="btn btn-sm btn-outline-success" title="Register">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>
+</html>
+
+
+

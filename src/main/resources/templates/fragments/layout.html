@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(pageTitle, activePage, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle != null ? pageTitle + ' - NPTEL Manager' : 'SWAYAM NPTEL Assignment Manager'}">NPTEL Manager</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+</head>
+<body class="bg-light" th:classappend="${darkMode != null and darkMode ? 'dark-mode' : ''}">
+
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <nav id="sidebar" class="sidebar d-flex flex-column p-0 bg-primary text-white">
+        <!-- Brand -->
+        <div class="sidebar-brand text-center py-4 px-3 border-bottom border-primary-subtle">
+            <div class="brand-icon mb-2">
+                <i class="bi bi-mortarboard-fill fs-2"></i>
+            </div>
+            <div class="fw-bold fs-6 lh-sm">SWAYAM NPTEL</div>
+            <div class="small opacity-75">Assignment Manager</div>
+        </div>
+
+        <!-- User Info -->
+        <div class="sidebar-user px-3 py-3 border-bottom border-primary-subtle">
+            <div class="d-flex align-items-center gap-2">
+                <div class="avatar-circle bg-white text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                     style="width:38px;height:38px;font-size:1rem;flex-shrink:0;">
+                    <span sec:authentication="name" th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">S</span>
+                </div>
+                <div class="overflow-hidden">
+                    <div class="fw-semibold small text-truncate" sec:authentication="name">User</div>
+                    <div class="opacity-75" style="font-size:0.7rem;">
+                        <span sec:authorize="hasRole('ADMIN')">Administrator</span>
+                        <span sec:authorize="hasRole('STUDENT')">Student</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <ul class="nav flex-column py-3 flex-grow-1">
+            <li class="nav-item">
+                <a th:href="@{/dashboard}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2"
+                   th:classappend="${activePage == 'dashboard' ? 'active bg-white bg-opacity-25 rounded mx-2' : ''}">
+                    <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/courses}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2"
+                   th:classappend="${activePage == 'courses' ? 'active bg-white bg-opacity-25 rounded mx-2' : ''}">
+                    <i class="bi bi-book"></i> <span>My Courses</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/assignments}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2"
+                   th:classappend="${activePage == 'assignments' ? 'active bg-white bg-opacity-25 rounded mx-2' : ''}">
+                    <i class="bi bi-clipboard-check"></i> <span>Assignments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/examinations}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2"
+                   th:classappend="${activePage == 'examinations' ? 'active bg-white bg-opacity-25 rounded mx-2' : ''}">
+                    <i class="bi bi-journal-check"></i> <span>Examinations</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/calendar}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2"
+                   th:classappend="${activePage == 'calendar' ? 'active bg-white bg-opacity-25 rounded mx-2' : ''}">
+                    <i class="bi bi-calendar3"></i> <span>Calendar</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/notifications}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2 position-relative"
+                   th:classappend="${activePage == 'notifications' ? 'active bg-white bg-opacity-25 rounded mx-2' : ''}">
+                    <i class="bi bi-bell"></i> <span>Notifications</span>
+                    <span th:if="${unreadCount != null and unreadCount > 0}"
+                          class="badge bg-danger rounded-pill ms-auto"
+                          th:text="${unreadCount}">0</span>
+                </a>
+            </li>
+
+            <!-- Admin section -->
+            <li class="nav-item mt-3" sec:authorize="hasRole('ADMIN')">
+                <div class="px-3 py-1 small opacity-50 text-uppercase fw-bold">Admin</div>
+            </li>
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2"
+                   th:classappend="${activePage == 'admin' ? 'active bg-white bg-opacity-25 rounded mx-2' : ''}">
+                    <i class="bi bi-shield-check"></i> <span>Admin Panel</span>
+                </a>
+            </li>
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin/users}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2">
+                    <i class="bi bi-people"></i> <span>Users</span>
+                </a>
+            </li>
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin/import}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2">
+                    <i class="bi bi-upload"></i> <span>CSV Import</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Bottom links -->
+        <div class="border-top border-primary-subtle">
+            <a th:href="@{/settings}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2">
+                <i class="bi bi-gear"></i> <span>Settings</span>
+            </a>
+            <a th:href="@{/auth/logout}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2">
+                <i class="bi bi-box-arrow-left"></i> <span>Logout</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Page content wrapper -->
+    <div id="page-content-wrapper" class="flex-grow-1 overflow-auto">
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg bg-white border-bottom px-4 sticky-top shadow-sm">
+            <button id="sidebarToggle" class="btn btn-sm btn-outline-secondary me-3">
+                <i class="bi bi-list fs-5"></i>
+            </button>
+            <span class="navbar-brand mb-0 fw-semibold text-primary" th:text="${pageTitle ?: 'Dashboard'}">Dashboard</span>
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <!-- Notification bell -->
+                <a th:href="@{/notifications}" class="btn btn-outline-secondary btn-sm position-relative">
+                    <i class="bi bi-bell"></i>
+                    <span th:if="${unreadCount != null and unreadCount > 0}"
+                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                          style="font-size:0.6rem;"
+                          th:text="${unreadCount}">0</span>
+                </a>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle me-1"></i>
+                        <span th:if="${student != null}" th:text="${student.fullName}">Student</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" th:href="@{/settings}"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" th:href="@{/auth/logout}"><i class="bi bi-box-arrow-left me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="p-4">
+            <!-- Flash messages -->
+            <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${successMsg}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${errorMsg}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Page content -->
+            <th:block th:replace="${content}"></th:block>
+        </main>
+    </div>
+</div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<!-- Custom JS -->
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

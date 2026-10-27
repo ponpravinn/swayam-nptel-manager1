@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(
+          pageTitle='Dashboard',
+          activePage='dashboard',
+          content=~{::content}
+      )}">
+
+<th:block th:fragment="content">
+<div class="dashboard-page">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">
+                <i class="bi bi-speedometer2 text-primary me-2"></i>Dashboard
+            </h4>
+            <p class="text-muted small mb-0">
+                Welcome back, <strong th:text="${student.fullName}">Student</strong>! 
+                Here's your NPTEL progress overview.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a th:href="@{/assignments/add}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Add Assignment
+            </a>
+            <a th:href="@{/courses/add}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Add Course
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="text-primary mb-1"><i class="bi bi-book fs-4"></i></div>
+                    <div class="fw-bold fs-4 text-primary" th:text="${totalCourses}">0</div>
+                    <div class="small text-muted">Courses</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="text-secondary mb-1"><i class="bi bi-clipboard fs-4"></i></div>
+                    <div class="fw-bold fs-4" th:text="${totalAssignments}">0</div>
+                    <div class="small text-muted">Total</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
+                <div class="card-body text-center py-3">
+                    <div class="text-success mb-1"><i class="bi bi-check-circle fs-4"></i></div>
+                    <div class="fw-bold fs-4 text-success" th:text="${completedAssignments}">0</div>
+                    <div class="small text-muted">Completed</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card border-0 shadow-sm h-100 border-start border-warning border-4">
+                <div class="card-body text-center py-3">
+                    <div class="text-warning mb-1"><i class="bi bi-hourglass-split fs-4"></i></div>
+                    <div class="fw-bold fs-4 text-warning" th:text="${incompleteAssignments}">0</div>
+                    <div class="small text-muted">Incomplete</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
+                <div class="card-body text-center py-3">
+                    <div class="text-danger mb-1"><i class="bi bi-exclamation-circle fs-4"></i></div>
+                    <div class="fw-bold fs-4 text-danger" th:text="${overdueAssignments}">0</div>
+                    <div class="small text-muted">Overdue</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card border-0 shadow-sm h-100 border-start border-info border-4">
+                <div class="card-body text-center py-3">
+                    <div class="text-info mb-1"><i class="bi bi-journal-check fs-4"></i></div>
+                    <div class="fw-bold fs-4 text-info" th:text="${upcomingExams}">0</div>
+                    <div class="small text-muted">Exams</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body py-3">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="small fw-semibold">Overall Assignment Completion</span>
+                <span class="small fw-bold text-primary" th:text="${completionPercent + '%'}">0%</span>
+            </div>
+            <div class="progress" style="height: 12px; border-radius: 6px;">
+                <div class="progress-bar bg-success progress-bar-striped"
+                     th:style="'width:' + ${completionPercent} + '%'"
+                     th:attr="aria-valuenow=${completionPercent}"
+                     aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="d-flex gap-3 mt-2">
+                <span class="small text-muted"><span class="text-success fw-semibold" th:text="${completedAssignments}">0</span> completed</span>
+                <span class="small text-muted"><span class="text-warning fw-semibold" th:text="${inProgressAssignments}">0</span> in progress</span>
+                <span class="small text-muted"><span class="text-danger fw-semibold" th:text="${overdueAssignments}">0</span> overdue</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left column -->
+        <div class="col-lg-8">
+            <!-- Due Today -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-danger text-white py-2 px-3">
+                    <i class="bi bi-alarm me-2"></i>
+                    <strong>Due Today</strong>
+                    <span class="badge bg-white text-danger ms-2" th:text="${dueToday.size()}">0</span>
+                </div>
+                <div class="card-body p-0">
+                    <div th:if="${dueToday.isEmpty()}" class="text-center py-4 text-muted">
+                        <i class="bi bi-check2-all fs-3 text-success"></i>
+                        <p class="mt-2 small">No assignments due today!</p>
+                    </div>
+                    <ul th:if="${!dueToday.isEmpty()}" class="list-group list-group-flush">
+                        <li th:each="sa : ${dueToday}" class="list-group-item px-3 py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-semibold small" th:text="${sa.assignment.title}">Title</div>
+                                    <div class="text-muted" style="font-size:0.75rem;"
+                                         th:text="${sa.assignment.course.courseName}">Course</div>
+                                </div>
+                                <a th:href="@{/assignments}" class="btn btn-danger btn-sm py-1 px-2">
+                                    <i class="bi bi-lightning-fill"></i> Submit Now
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Due in 7 Days -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-warning bg-opacity-10 py-2 px-3 border-bottom">
+                    <i class="bi bi-calendar-week text-warning me-2"></i>
+                    <strong>Due in Next 7 Days</strong>
+                    <span class="badge bg-warning text-dark ms-2" th:text="${dueSoon.size()}">0</span>
+                </div>
+                <div class="card-body p-0">
+                    <div th:if="${dueSoon.isEmpty()}" class="text-center py-4 text-muted small">
+                        <i class="bi bi-calendar-check fs-3 text-success"></i>
+                        <p class="mt-2">No upcoming deadlines in the next 7 days.</p>
+                    </div>
+                    <ul th:if="${!dueSoon.isEmpty()}" class="list-group list-group-flush">
+                        <li th:each="sa : ${dueSoon}" class="list-group-item px-3 py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-semibold small" th:text="${sa.assignment.title}">Title</div>
+                                    <div class="text-muted" style="font-size:0.75rem;">
+                                        <span th:text="${sa.assignment.course.courseName}">Course</span>
+                                        &bull;
+                                        <span th:text="${#temporals.format(sa.assignment.dueDate, 'dd MMM yyyy, hh:mm a')}">Date</span>
+                                    </div>
+                                </div>
+                                <span class="badge"
+                                      th:classappend="${sa.status.name() == 'IN_PROGRESS'} ? 'bg-warning text-dark' : 'bg-secondary'"
+                                      th:text="${sa.status.name().replace('_',' ')}">STATUS</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Recently Completed -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success bg-opacity-10 py-2 px-3 border-bottom">
+                    <i class="bi bi-check-circle text-success me-2"></i>
+                    <strong>Recently Completed</strong>
+                </div>
+                <div class="card-body p-0">
+                    <div th:if="${recentlyCompleted.isEmpty()}" class="text-center py-4 text-muted small">
+                        No completed assignments yet.
+                    </div>
+                    <ul th:if="${!recentlyCompleted.isEmpty()}" class="list-group list-group-flush">
+                        <li th:each="sa : ${recentlyCompleted}" class="list-group-item px-3 py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-semibold small" th:text="${sa.assignment.title}">Title</div>
+                                    <div class="text-muted" style="font-size:0.75rem;"
+                                         th:text="${sa.assignment.course.courseName}">Course</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success">Completed</span>
+                                    <div class="text-muted" style="font-size:0.7rem;"
+                                         th:if="${sa.marksObtained != null}"
+                                         th:text="'Score: ' + ${sa.marksObtained}"></div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column -->
+        <div class="col-lg-4">
+            <!-- Charts -->
+            <!-- Charts -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header py-2 px-3 border-bottom">
+                    <i class="bi bi-pie-chart me-2 text-primary"></i><strong>Assignment Completion</strong>
+                </div>
+                <div class="card-body">
+                    <canvas id="assignmentChart" height="160"></canvas>
+                </div>
+            </div>
+
+            <!-- Course-wise Progress Chart -->
+            <div class="card border-0 shadow-sm mb-4" th:if="${!courseLabels.isEmpty()}">
+                <div class="card-header py-2 px-3 border-bottom">
+                    <i class="bi bi-bar-chart-line me-2 text-success"></i><strong>Course-wise Progress</strong>
+                </div>
+                <div class="card-body">
+                    <canvas id="courseProgressChart" height="180"></canvas>
+                </div>
+            </div>
+
+            <!-- Exam Registrations -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-info bg-opacity-10 py-2 px-3 border-bottom">
+                    <i class="bi bi-journal-check text-info me-2"></i><strong>Exam Registrations</strong>
+                </div>
+                <div class="card-body p-0">
+                    <div th:if="${examRegistrations.isEmpty()}" class="text-center py-4 text-muted small">
+                        No examinations tracked. <a th:href="@{/examinations}">View Exams</a>
+                    </div>
+                    <ul th:if="${!examRegistrations.isEmpty()}" class="list-group list-group-flush">
+                        <li th:each="er : ${examRegistrations}" class="list-group-item px-3 py-2">
+                            <div class="fw-semibold small" th:text="${er.examination.course.courseName}">Course</div>
+                            <div class="d-flex gap-2 mt-1">
+                                <span class="badge"
+                                      th:classappend="${er.registrationStatus.name() == 'REGISTERED'} ? 'bg-success' : (${er.registrationStatus.name() == 'REGISTRATION_OPEN'} ? 'bg-warning text-dark' : 'bg-secondary')"
+                                      style="font-size:0.68rem;"
+                                      th:text="${er.registrationStatus.name().replace('_',' ')}">STATUS</span>
+                                <span class="badge"
+                                      th:classappend="${er.paymentStatus.name() == 'PAID'} ? 'bg-success' : 'bg-outline-secondary border text-dark'"
+                                      style="font-size:0.68rem;"
+                                      th:text="${er.paymentStatus.name().replace('_',' ')}">PAYMENT</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent py-2 px-3">
+                    <a th:href="@{/examinations}" class="small text-info text-decoration-none">
+                        View all exams <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Notifications -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header py-2 px-3 border-bottom">
+                    <i class="bi bi-bell me-2 text-primary"></i><strong>Recent Notifications</strong>
+                    <span th:if="${unreadCount != null and unreadCount > 0}" class="badge bg-danger ms-1" th:text="${unreadCount}">0</span>
+                </div>
+                <div class="card-body p-0">
+                    <div th:if="${recentNotifications.isEmpty()}" class="text-center py-4 text-muted small">
+                        No notifications yet.
+                    </div>
+                    <ul th:if="${!recentNotifications.isEmpty()}" class="list-group list-group-flush">
+                        <li th:each="n : ${recentNotifications}"
+                            th:classappend="${!n.isRead() ? ' bg-light' : ''}"
+                            class="list-group-item px-3 py-2">
+                            <div class="d-flex gap-2">
+                                <span th:if="${!n.isRead()}" class="text-primary mt-1"><i class="bi bi-dot fs-5"></i></span>
+                                <div>
+                                    <div class="fw-semibold small" th:text="${n.title ?: 'Notification'}">Title</div>
+                                    <div class="text-muted" style="font-size:0.73rem;" th:text="${n.message}">msg</div>
+                                    <div class="text-muted mt-1" style="font-size:0.68rem;"
+                                         th:text="${#temporals.format(n.createdAt, 'dd MMM, hh:mm a')}">time</div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent py-2 px-3">
+                    <a th:href="@{/notifications}" class="small text-primary text-decoration-none">
+                        View all <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:inline="javascript">
+/*<![CDATA[*/
+const completed = /*[[${chartCompleted}]]*/ 0;
+const incomplete = /*[[${chartIncomplete}]]*/ 0;
+
+const ctx = document.getElementById('assignmentChart');
+if (ctx) {
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Incomplete'],
+            datasets: [{
+                data: [completed, incomplete],
+                backgroundColor: ['#28a745', '#e9ecef'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '70%',
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 11 } } }
+            }
+        }
+    });
+}
+
+// Course-wise Progress Bar Chart
+const courseLabels = /*[[${courseLabels}]]*/ [];
+const courseCompleted = /*[[${courseCompletedCounts}]]*/ [];
+const courseTotals = /*[[${courseTotalCounts}]]*/ [];
+
+const courseCtx = document.getElementById('courseProgressChart');
+if (courseCtx && courseLabels.length > 0) {
+    new Chart(courseCtx, {
+        type: 'bar',
+        data: {
+            labels: courseLabels,
+            datasets: [
+                {
+                    label: 'Completed',
+                    data: courseCompleted,
+                    backgroundColor: '#28a745'
+                },
+                {
+                    label: 'Total',
+                    data: courseTotals,
+                    backgroundColor: '#0d6efd'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            },
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 11 } } }
+            }
+        }
+    });
+}
+/*]]>*/
+</script>
+</th:block>
+</html>
+
+

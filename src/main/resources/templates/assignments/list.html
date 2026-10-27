@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(
+          pageTitle='Assignments',
+          activePage='assignments',
+          content=~{::content}
+      )}">
+<th:block th:fragment="content">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-clipboard-check text-primary me-2"></i>Assignments</h4>
+    <div class="d-flex gap-2">
+        <a th:href="@{/assignments/export}" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-download me-1"></i>Export CSV
+        </a>
+        <a th:href="@{/assignments/add}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Add Assignment
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="get" th:action="@{/assignments}" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold mb-1">Search</label>
+                <input type="text" name="search" th:value="${search}" class="form-control form-control-sm"
+                       placeholder="Search by assignment title...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">Filter by Course</label>
+                <select name="courseId" class="form-select form-select-sm">
+                    <option value="">All Courses</option>
+                    <option th:each="sc : ${courses}" th:value="${sc.course.id}"
+                            th:selected="${selectedCourseId == sc.course.id}"
+                            th:text="${sc.course.courseName}">Course</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">Filter by Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All Status</option>
+                    <option th:each="s : ${statuses}" th:value="${s.name()}"
+                            th:selected="${selectedStatus == s.name()}"
+                            th:text="${s.name().replace('_',' ')}">Status</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-search me-1"></i>Filter
+                </button>
+                <a th:href="@{/assignments}" class="btn btn-outline-secondary btn-sm w-100">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Assignments Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header py-2 px-3 border-bottom">
+        <strong>Assignments</strong>
+        <span class="badge bg-primary ms-2" th:text="${assignments.size()}">0</span>
+    </div>
+    <div class="card-body p-0">
+        <div th:if="${assignments.isEmpty()}" class="text-center py-5 text-muted">
+            <i class="bi bi-clipboard fs-1 opacity-25"></i>
+            <p class="mt-3">No assignments found.</p>
+            <a th:href="@{/assignments/add}" class="btn btn-primary btn-sm">Add Assignment</a>
+        </div>
+        <div th:if="${!assignments.isEmpty()}" class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">#</th>
+                        <th>Assignment</th>
+                        <th>Course</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Marks</th>
+                        <th class="pe-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="sa,iter : ${assignments}"
+                        th:classappend="${sa.isEffectivelyOverdue() ? 'table-danger' : (sa.status.name() == 'COMPLETED' ? 'table-success' : '')}">
+                        <td class="ps-3 text-muted small" th:text="${sa.assignment.assignmentNumber}">1</td>
+                        <td>
+                            <div class="fw-semibold small" th:text="${sa.assignment.title}">Title</div>
+                            <div th:if="${sa.assignment.description}" class="text-muted" style="font-size:0.72rem;"
+                                 th:text="${#strings.abbreviate(sa.assignment.description, 60)}">Desc</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border small"
+                                  th:text="${sa.assignment.course.courseCode}">CODE</span>
+                        </td>
+                        <td>
+                            <div class="small" th:if="${sa.assignment.dueDate}">
+                                <span th:text="${#temporals.format(sa.assignment.dueDate, 'dd MMM yyyy')}">Date</span>
+                                <div class="text-muted" style="font-size:0.7rem;"
+                                     th:text="${#temporals.format(sa.assignment.dueDate, 'hh:mm a')}">Time</div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${sa.status.name() == 'COMPLETED'} ? 'bg-success' : (${sa.status.name() == 'OVERDUE'} ? 'bg-danger' : (${sa.status.name() == 'IN_PROGRESS'} ? 'bg-warning text-dark' : 'bg-secondary'))"
+                                  th:text="${sa.status.name().replace('_',' ')}">STATUS</span>
+                            <span th:if="${sa.isEffectivelyOverdue() and sa.status.name() != 'OVERDUE'}"
+                                  class="badge bg-danger ms-1">OVERDUE</span>
+                        </td>
+                        <td class="small" th:text="${sa.marksObtained != null ? sa.marksObtained : '-'}">-</td>
+                        <td class="pe-3">
+                            <div class="d-flex gap-1 flex-wrap">
+                                <!-- Mark Complete -->
+                                <form th:if="${sa.status.name() != 'COMPLETED'}"
+                                      th:action="@{/assignments/complete/{id}(id=${sa.assignment.id})}"
+                                      method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success py-1 px-2" title="Mark Complete"
+                                            onclick="return confirm('Mark this assignment as completed?')">
+                                        <i class="bi bi-check2"></i>
+                                    </button>
+                                </form>
+
+                                <!-- Set In Progress -->
+                                <form th:if="${sa.status.name() == 'NOT_STARTED'}"
+                                      th:action="@{/assignments/status/{id}(id=${sa.assignment.id})}"
+                                      method="post" class="d-inline">
+                                    <input type="hidden" name="status" value="IN_PROGRESS">
+                                    <button type="submit" class="btn btn-sm btn-warning py-1 px-2" title="Mark In Progress">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                </form>
+
+                                <!-- Open Submission URL -->
+                                <a th:if="${sa.assignment.submissionUrl != null and !sa.assignment.submissionUrl.isBlank()}"
+                                   th:href="${sa.assignment.submissionUrl}"
+                                   target="_blank" class="btn btn-sm btn-outline-primary py-1 px-2" title="Open Submission">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+
+                                <!-- Edit -->
+                                <a th:href="@{/assignments/edit/{id}(id=${sa.assignment.id})}"
+                                   class="btn btn-sm btn-outline-secondary py-1 px-2" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+
+                                <!-- Delete -->
+                                <form th:action="@{/assignments/delete/{id}(id=${sa.assignment.id})}"
+                                      method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2" title="Delete"
+                                            onclick="return confirm('Delete this assignment?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Complete with Marks Modal would typically be a modal, simplified here as inline -->
+</th:block>
+</html>
+</html>
+
+
+

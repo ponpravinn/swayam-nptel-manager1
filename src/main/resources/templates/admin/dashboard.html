@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(
+          pageTitle='Admin Panel',
+          activePage='admin',
+          content=~{::content}
+      )}">
+<th:block th:fragment="content">
+<h4 class="fw-bold mb-4"><i class="bi bi-shield-check text-primary me-2"></i>Admin Panel</h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <i class="bi bi-book fs-2 text-primary mb-2"></i>
+            <div class="fw-bold fs-4 text-primary" th:text="${courses.size()}">0</div>
+            <div class="small text-muted">Published Courses</div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex gap-3 mb-4 flex-wrap">
+    <a th:href="@{/admin/courses/add}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Add Course
+    </a>
+    <a th:href="@{/admin/assignments/add}" class="btn btn-outline-primary">
+        <i class="bi bi-plus-lg me-1"></i>Add Assignment
+    </a>
+    <a th:href="@{/admin/examinations/add}" class="btn btn-outline-info">
+        <i class="bi bi-plus-lg me-1"></i>Add Examination
+    </a>
+    <a th:href="@{/admin/examinations}" class="btn btn-outline-secondary">
+        <i class="bi bi-journal-check me-1"></i>Manage Exams
+    </a>
+    <a th:href="@{/admin/users}" class="btn btn-outline-dark">
+        <i class="bi bi-people me-1"></i>Manage Users
+    </a>
+    <a th:href="@{/admin/import}" class="btn btn-outline-success">
+        <i class="bi bi-upload me-1"></i>CSV Import
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header py-2 px-3 border-bottom">
+        <strong>Published Courses</strong>
+    </div>
+    <div class="card-body p-0">
+        <div th:if="${courses.isEmpty()}" class="text-center py-5 text-muted">
+            No courses published yet. <a th:href="@{/admin/courses/add}">Add the first course</a>.
+        </div>
+        <div class="table-responsive" th:if="${!courses.isEmpty()}">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Course</th>
+                        <th>Code</th>
+                        <th>Instructor</th>
+                        <th>Semester</th>
+                        <th class="pe-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="course : ${courses}">
+                        <td class="ps-3 fw-semibold small" th:text="${course.courseName}">Course</td>
+                        <td><span class="badge bg-light text-dark border" th:text="${course.courseCode}">CODE</span></td>
+                        <td class="small" th:text="${course.instructor}">Prof.</td>
+                        <td class="small" th:text="${course.semester}">Sem</td>
+                        <td class="pe-3">
+                            <a th:href="@{/admin/courses/edit/{id}(id=${course.id})}"
+                               class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/admin/courses/delete/{id}(id=${course.id})}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Delete this course and all its assignments?')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>
+</html>
+
+
+

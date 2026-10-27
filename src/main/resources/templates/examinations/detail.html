@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(
+          pageTitle='Exam Details',
+          activePage='examinations',
+          content=~{::content}
+      )}">
+<th:block th:fragment="content">
+<div class="mb-3">
+    <a th:href="@{/examinations}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Examinations
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header py-3 px-4 border-bottom bg-primary text-white">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-journal-check me-2"></i>
+                    <span th:text="${exam.course.courseName}">Course</span>
+                </h5>
+                <span class="badge bg-white text-primary mt-1" th:text="${exam.examSession}">Session</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <h6 class="text-muted small fw-semibold text-uppercase">Registration Period</h6>
+                        <p class="mb-1 small">
+                            Opens: <strong th:text="${exam.registrationOpenDate != null ? #temporals.format(exam.registrationOpenDate, 'dd MMM yyyy') : 'TBA'}">-</strong>
+                        </p>
+                        <p class="mb-0 small">
+                            Closes: <strong class="text-danger" th:text="${exam.registrationCloseDate != null ? #temporals.format(exam.registrationCloseDate, 'dd MMM yyyy') : 'TBA'}">-</strong>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted small fw-semibold text-uppercase">Registration Fee</h6>
+                        <p class="fw-bold fs-5 text-primary"
+                           th:text="${exam.registrationFee != null ? 'â‚¹' + exam.registrationFee : 'Not Specified'}">Fee</p>
+                        <a th:if="${exam.registrationUrl}" th:href="${exam.registrationUrl}"
+                           target="_blank" class="btn btn-primary btn-sm">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Register on NPTEL
+                        </a>
+                    </div>
+                    <div class="col-12"><hr></div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted small fw-semibold text-uppercase">Exam Date & Time</h6>
+                        <p class="mb-1 small fw-semibold"
+                           th:text="${exam.examDate != null ? #temporals.format(exam.examDate, 'EEEE, dd MMMM yyyy') : 'TBA'}">Date</p>
+                        <p class="mb-0 small text-muted"
+                           th:text="${exam.examStartTime != null ? #temporals.format(exam.examStartTime, 'hh:mm a') + ' to ' + (exam.examEndTime != null ? #temporals.format(exam.examEndTime, 'hh:mm a') : '?') : 'Time TBA'}">Time</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted small fw-semibold text-uppercase">Exam Mode</h6>
+                        <p class="mb-0" th:text="${exam.examMode ?: 'TBA'}">Mode</p>
+                    </div>
+                    <div class="col-12" th:if="${exam.examCenterName}">
+                        <h6 class="text-muted small fw-semibold text-uppercase">Exam Center</h6>
+                        <p class="mb-0 fw-semibold" th:text="${exam.examCenterName}">Center</p>
+                        <p class="mb-0 text-muted small" th:if="${exam.examCenterAddress}"
+                           th:text="${exam.examCenterAddress}">Address</p>
+                        <p class="mb-0 text-muted small" th:if="${exam.city}"
+                           th:text="${exam.city}">City</p>
+                        <a th:if="${exam.mapUrl}" th:href="${exam.mapUrl}" target="_blank"
+                           class="btn btn-sm btn-outline-info mt-2">
+                            <i class="bi bi-geo-alt me-1"></i>Open in Google Maps
+                        </a>
+                    </div>
+                    <div class="col-12" th:if="${exam.importantInstructions}">
+                        <h6 class="text-muted small fw-semibold text-uppercase">Important Instructions</h6>
+                        <div class="alert alert-warning py-2 px-3 small" th:text="${exam.importantInstructions}">Instructions</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Registration Status Panel -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header py-2 px-3 border-bottom">
+                <strong>My Status</strong>
+            </div>
+            <div class="card-body p-3">
+                <div th:if="${myReg == null}" class="text-center text-muted py-3">
+                    <p class="small">You are not tracking this exam.</p>
+                    <form th:action="@{/examinations/track/{id}(id=${exam.id})}" method="post">
+                        <button class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-lg me-1"></i>Track This Exam
+                        </button>
+                    </form>
+                </div>
+                <div th:if="${myReg != null}">
+                    <div class="mb-3">
+                        <div class="small text-muted fw-semibold mb-1">Registration Status</div>
+                        <span class="badge fs-6"
+                              th:classappend="${myReg.registrationStatus.name() == 'REGISTERED'} ? 'bg-success' : (${myReg.registrationStatus.name() == 'REGISTRATION_OPEN'} ? 'bg-warning text-dark' : (${myReg.registrationStatus.name() == 'REGISTRATION_CLOSED'} ? 'bg-danger' : 'bg-secondary'))"
+                              th:text="${myReg.registrationStatus.name().replace('_',' ')}">STATUS</span>
+                    </div>
+                    <div class="mb-3">
+                        <div class="small text-muted fw-semibold mb-1">Payment Status</div>
+                        <span class="badge fs-6"
+                              th:classappend="${myReg.paymentStatus.name() == 'PAID'} ? 'bg-success' : (${myReg.paymentStatus.name() == 'PAYMENT_PENDING'} ? 'bg-warning text-dark' : 'bg-secondary')"
+                              th:text="${myReg.paymentStatus.name().replace('_',' ')}">PAYMENT</span>
+                    </div>
+                    <hr>
+                    <!-- Update Registration Status -->
+                    <div class="mb-3">
+                        <form th:action="@{/examinations/registration-status/{id}(id=${exam.id})}" method="post">
+                            <label class="small fw-semibold form-label">Update Registration</label>
+                            <select name="status" class="form-select form-select-sm mb-2">
+                                <option value="NOT_OPENED">Not Opened</option>
+                                <option value="REGISTRATION_OPEN">Registration Open</option>
+                                <option value="REGISTERED">Registered</option>
+                                <option value="REGISTRATION_CLOSED">Registration Closed</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary w-100">Update</button>
+                        </form>
+                    </div>
+                    <!-- Update Payment Status -->
+                    <div>
+                        <form th:action="@{/examinations/payment-status/{id}(id=${exam.id})}" method="post">
+                            <label class="small fw-semibold form-label">Update Payment</label>
+                            <select name="status" class="form-select form-select-sm mb-2">
+                                <option value="NOT_PAID">Not Paid</option>
+                                <option value="PAYMENT_PENDING">Payment Pending</option>
+                                <option value="PAID">Paid</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-success w-100">Update Payment</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body p-3 text-center">
+                <div class="small text-muted mb-2">Official Information</div>
+                <a href="https://onlinecourses.nptel.ac.in" target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="bi bi-globe me-1"></i>NPTEL Online Courses
+                </a>
+                <a href="https://examform.nptel.ac.in" target="_blank" class="btn btn-outline-info btn-sm w-100 mt-2">
+                    <i class="bi bi-file-earmark-text me-1"></i>Exam Registration Portal
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>
+</html>
+
+
+

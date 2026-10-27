@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(
+          pageTitle='CSV Import',
+          activePage='admin',
+          content=~{::content}
+      )}">
+<th:block th:fragment="content">
+
+<h4 class="fw-bold mb-4"><i class="bi bi-upload text-primary me-2"></i>CSV Import</h4>
+
+<!-- Import Result -->
+<div th:if="${importResult}" class="alert mb-4"
+     th:classappend="${importResult.hasErrors()} ? 'alert-warning' : 'alert-success'">
+    <i class="bi me-2" th:classappend="${importResult.hasErrors()} ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill'"></i>
+    <strong th:text="${importResult.summary}"></strong>
+    <ul th:if="${!importResult.errors.isEmpty()}" class="mt-2 mb-0 small">
+        <li th:each="err : ${importResult.errors}" th:text="${err}" class="text-danger"></li>
+    </ul>
+    <ul th:if="${!importResult.warnings.isEmpty()}" class="mt-2 mb-0 small">
+        <li th:each="w : ${importResult.warnings}" th:text="${w}" class="text-warning"></li>
+    </ul>
+</div>
+
+<div class="row g-4">
+
+    <!-- Import Courses -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-primary text-white py-3">
+                <h6 class="mb-0"><i class="bi bi-book me-2"></i>Import Courses</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Upload a CSV file with course data. Duplicate course codes will be skipped.
+                </p>
+                <p class="small fw-semibold text-muted">Required columns:</p>
+                <code class="small d-block mb-3 bg-light p-2 rounded">
+                    courseName, courseCode, instructor, duration,<br>
+                    startDate, endDate, semester, description, courseUrl
+                </code>
+                <a th:href="@{/admin/import/template/courses}" class="btn btn-outline-secondary btn-sm mb-3 w-100">
+                    <i class="bi bi-download me-1"></i>Download Template
+                </a>
+                <form th:action="@{/admin/import/courses}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="file" name="file" accept=".csv" class="form-control form-control-sm mb-2" required>
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-upload me-1"></i>Import Courses
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Assignments -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-success text-white py-3">
+                <h6 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Import Assignments</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Upload a CSV with assignment data. Course must exist by courseCode.
+                </p>
+                <p class="small fw-semibold text-muted">Required columns:</p>
+                <code class="small d-block mb-3 bg-light p-2 rounded">
+                    courseCode, title, assignmentNumber, description,<br>
+                    releaseDate, dueDate, submissionUrl
+                </code>
+                <a th:href="@{/admin/import/template/assignments}" class="btn btn-outline-secondary btn-sm mb-3 w-100">
+                    <i class="bi bi-download me-1"></i>Download Template
+                </a>
+                <form th:action="@{/admin/import/assignments}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="file" name="file" accept=".csv" class="form-control form-control-sm mb-2" required>
+                    <button type="submit" class="btn btn-success btn-sm w-100">
+                        <i class="bi bi-upload me-1"></i>Import Assignments
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Examinations -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-danger text-white py-3">
+                <h6 class="mb-0"><i class="bi bi-journal-check me-2"></i>Import Examinations</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Upload a CSV with examination data. Course must exist by courseCode.
+                </p>
+                <p class="small fw-semibold text-muted">Required columns:</p>
+                <code class="small d-block mb-3 bg-light p-2 rounded">
+                    courseCode, examSession, registrationOpenDate,<br>
+                    registrationCloseDate, registrationFee, examDate,<br>
+                    examMode, examCenterName, city, importantInstructions
+                </code>
+                <a th:href="@{/admin/import/template/examinations}" class="btn btn-outline-secondary btn-sm mb-3 w-100">
+                    <i class="bi bi-download me-1"></i>Download Template
+                </a>
+                <form th:action="@{/admin/import/examinations}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="file" name="file" accept=".csv" class="form-control form-control-sm mb-2" required>
+                    <button type="submit" class="btn btn-danger btn-sm w-100">
+                        <i class="bi bi-upload me-1"></i>Import Examinations
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notes -->
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-body">
+        <h6 class="fw-bold mb-3"><i class="bi bi-info-circle text-info me-2"></i>Import Notes</h6>
+        <ul class="small text-muted mb-0">
+            <li>Date format: <code>yyyy-MM-dd</code> (e.g., <code>2024-01-15</code>)</li>
+            <li>DateTime format: <code>yyyy-MM-dd HH:mm</code> (e.g., <code>2024-01-15 23:59</code>)</li>
+            <li>The first row is treated as the header and is always skipped</li>
+            <li>For assignments, the courseCode must match an existing course in the system</li>
+            <li>Duplicate course codes are automatically skipped</li>
+            <li>Imported assignments are automatically assigned to all enrolled students</li>
+        </ul>
+    </div>
+</div>
+
+</th:block>
+</html>
+</html>
+
+
+

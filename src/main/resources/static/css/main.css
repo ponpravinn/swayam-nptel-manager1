@@ -1,0 +1,197 @@
+/* ==========================================
+   SWAYAM NPTEL Assignment Manager - Styles
+   ========================================== */
+
+/* Root variables */
+:root {
+    --sidebar-width: 240px;
+    --sidebar-collapsed-width: 60px;
+    --primary: #0d6efd;
+    --sidebar-bg: #1a3c6e;
+}
+
+/* ---- Layout ---- */
+#wrapper {
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    min-height: 100vh;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #1a3c6e 0%, #0d2d5a 100%) !important;
+    transition: width 0.25s ease;
+    overflow-x: hidden;
+    z-index: 100;
+}
+
+#page-content-wrapper {
+    width: calc(100% - var(--sidebar-width));
+    transition: width 0.25s ease;
+}
+
+/* Sidebar active link */
+.sidebar .nav-link.active,
+.sidebar .nav-link:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-radius: 8px !important;
+    margin: 0 8px;
+}
+
+.sidebar .nav-link {
+    border-radius: 8px;
+    transition: background 0.15s;
+    font-size: 0.875rem;
+}
+
+/* ---- Cards ---- */
+.card {
+    border-radius: 12px;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+/* ---- Sidebar collapsed state ---- */
+.sidebar-collapsed .sidebar {
+    width: var(--sidebar-collapsed-width);
+}
+
+.sidebar-collapsed .sidebar span,
+.sidebar-collapsed .sidebar-brand div,
+.sidebar-collapsed .sidebar-user div.overflow-hidden {
+    display: none;
+}
+
+.sidebar-collapsed #page-content-wrapper {
+    width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+/* ---- Summary cards ---- */
+.stat-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
+}
+
+/* ---- Course cards ---- */
+.course-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 12px !important;
+}
+
+.course-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12) !important;
+}
+
+/* ---- Assignment status badges ---- */
+.badge {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+/* ---- Progress bars ---- */
+.progress {
+    background: #e9ecef;
+    border-radius: 8px;
+}
+
+.progress-bar {
+    border-radius: 8px;
+    transition: width 0.6s ease;
+}
+
+/* ---- Tables ---- */
+.table > tbody > tr:last-child > td {
+    border-bottom: none;
+}
+
+/* ---- Notification badge ---- */
+.notification-badge {
+    font-size: 0.6rem;
+    padding: 2px 5px;
+}
+
+/* ---- Dark mode ---- */
+.dark-mode {
+    background: #121212 !important;
+    color: #e0e0e0;
+}
+
+.dark-mode .card {
+    background: #1e1e1e !important;
+    border-color: #333 !important;
+    color: #e0e0e0;
+}
+
+.dark-mode .navbar {
+    background: #1e1e1e !important;
+    border-bottom-color: #333 !important;
+}
+
+.dark-mode .table {
+    color: #e0e0e0;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        z-index: 1050;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    #page-content-wrapper {
+        width: 100% !important;
+    }
+}
+
+/* ---- FullCalendar overrides ---- */
+.fc-toolbar-title {
+    font-size: 1rem !important;
+    font-weight: 600;
+}
+
+.fc-event {
+    cursor: pointer;
+    border-radius: 4px !important;
+    font-size: 0.75rem;
+}
+
+/* ---- Utility ---- */
+.btn-xs {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+}
+
+.text-orange {
+    color: #fd7e14;
+}
+
+/* Brand logo area */
+.sidebar-brand {
+    background: rgba(255,255,255,0.05);
+}
+
+/* Scrollable sidebar if content is tall */
+.sidebar {
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.sidebar::-webkit-scrollbar {
+    display: none;
+}
