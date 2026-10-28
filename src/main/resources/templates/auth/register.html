@@ -28,7 +28,7 @@
                         <span th:text="${errorMsg}"></span>
                     </div>
 
-                    <form th:action="@{/auth/register}" method="post" th:object="${user}">
+                    <form th:action="@{/auth/register}" method="post" th:object="${user}" onsubmit="document.getElementById('email').value = document.getElementById('email').value.trim().toLowerCase();">
                         <div class="mb-3">
                             <label class="form-label small fw-semibold">Full Name *</label>
                             <input type="text" th:field="*{fullName}" class="form-control"
@@ -38,10 +38,12 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-semibold">Email Address *</label>
-                            <input type="email" th:field="*{email}" class="form-control"
+                            <input type="email" id="email" th:field="*{email}" class="form-control"
                                    th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"
-                                   placeholder="your@email.com" required>
+                                   placeholder="your@email.com" required
+                                   oninput="this.value = this.value.toLowerCase()">
                             <div class="invalid-feedback" th:errors="*{email}"></div>
+                            <div class="form-text" style="font-size:0.75rem;">You will use this email address to sign in every time.</div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-semibold">Password *</label>
@@ -50,37 +52,36 @@
                                    placeholder="Min. 6 characters" required minlength="6">
                             <div class="invalid-feedback" th:errors="*{password}"></div>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Institution / College Name *</label>
+                            <input type="text" th:field="*{college}" class="form-control"
+                                   th:classappend="${#fields.hasErrors('college')} ? 'is-invalid'"
+                                   placeholder="e.g. National Engineering College, IIT Madras, Anna University" maxlength="150" required>
+                            <div class="invalid-feedback" th:errors="*{college}"></div>
+                        </div>
                         <div class="row g-3 mb-3">
                             <div class="col-6">
-                                <label class="form-label small fw-semibold">College</label>
-                                <input type="text" th:field="*{college}" class="form-control form-control-sm"
-                                       th:classappend="${#fields.hasErrors('college')} ? 'is-invalid'"
-                                       placeholder="College Name" maxlength="150">
-                                <div class="invalid-feedback" th:errors="*{college}"></div>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label small fw-semibold">Department</label>
+                                <label class="form-label small fw-semibold">Department / Branch *</label>
                                 <input type="text" th:field="*{department}" class="form-control form-control-sm"
                                        th:classappend="${#fields.hasErrors('department')} ? 'is-invalid'"
-                                       placeholder="Dept." maxlength="100">
+                                       placeholder="e.g. CSE, IT, ECE" maxlength="100" required>
                                 <div class="invalid-feedback" th:errors="*{department}"></div>
                             </div>
-                        </div>
-                        <div class="row g-3 mb-4">
                             <div class="col-6">
-                                <label class="form-label small fw-semibold">Roll Number</label>
+                                <label class="form-label small fw-semibold">Roll / Register No. *</label>
                                 <input type="text" th:field="*{rollNumber}" class="form-control form-control-sm"
                                        th:classappend="${#fields.hasErrors('rollNumber')} ? 'is-invalid'"
-                                       placeholder="Roll No. (e.g. 310625243155)" maxlength="50">
+                                       placeholder="e.g. 310625243155" maxlength="50" required>
                                 <div class="invalid-feedback" th:errors="*{rollNumber}"></div>
                             </div>
-                            <div class="col-6">
-                                <label class="form-label small fw-semibold">Phone</label>
-                                <input type="tel" th:field="*{phone}" class="form-control form-control-sm"
-                                       th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'"
-                                       placeholder="+91 xxxxxxxxxx" maxlength="20">
-                                <div class="invalid-feedback" th:errors="*{phone}"></div>
-                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold">Phone / WhatsApp Number *</label>
+                            <input type="tel" th:field="*{phone}" class="form-control"
+                                   th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'"
+                                   placeholder="+91 9876543210" maxlength="20" required>
+                            <div class="invalid-feedback" th:errors="*{phone}"></div>
+                            <div class="form-text" style="font-size:0.75rem;">Used to receive automated WhatsApp reminders for assignment deadlines and exam dates.</div>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 py-2">
                             <i class="bi bi-person-plus me-2"></i>Create Account

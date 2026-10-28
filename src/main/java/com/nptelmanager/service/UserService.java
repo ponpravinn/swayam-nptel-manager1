@@ -31,23 +31,38 @@ public class UserService {
     private String mailFrom;
 
     public User register(User user) {
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("An account with this email already exists.");
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Email address is required.");
         }
+        String cleanEmail = user.getEmail().trim().toLowerCase();
+        if (userRepository.existsByEmailIgnoreCase(cleanEmail)) {
+            throw new IllegalArgumentException("An account with this email already exists: " + cleanEmail);
+        }
+        user.setEmail(cleanEmail);
+        if (user.getFullName() != null) user.setFullName(user.getFullName().trim());
+        if (user.getCollege() != null) user.setCollege(user.getCollege().trim());
+        if (user.getDepartment() != null) user.setDepartment(user.getDepartment().trim());
+        if (user.getRollNumber() != null) user.setRollNumber(user.getRollNumber().trim());
+        if (user.getPhone() != null) user.setPhone(user.getPhone().trim());
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(User.Role.STUDENT);
         user.setEnabled(true);
+        user.setEmailNotificationsEnabled(true);
+        user.setWhatsappNotificationsEnabled(true);
         return userRepository.save(user);
     }
 
     @Transactional(readOnly = true)
     public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
+        if (email == null) return Optional.empty();
+        return userRepository.findByEmailIgnoreCase(email.trim().toLowerCase());
     }
 
     @Transactional(readOnly = true)
     public User getByEmail(String email) {
-        return userRepository.findByEmail(email)
+        if (email == null) throw new RuntimeException("Email cannot be null");
+        return userRepository.findByEmailIgnoreCase(email.trim().toLowerCase())
             .orElseThrow(() -> new RuntimeException("User not found: " + email));
     }
 
@@ -75,7 +90,8 @@ public class UserService {
     }
 
     public String generatePasswordResetOtp(String email) {
-        User user = userRepository.findByEmail(email)
+        String cleanEmail = email != null ? email.trim().toLowerCase() : "";
+        User user = userRepository.findByEmailIgnoreCase(cleanEmail)
             .orElseThrow(() -> new IllegalArgumentException("No account registered with email: " + email));
 
         int code = 100000 + new java.security.SecureRandom().nextInt(900000);
@@ -85,13 +101,13 @@ public class UserService {
         user.setResetTokenExpiry(LocalDateTime.now().plusMinutes(15));
         userRepository.save(user);
 
-        log.info("Password reset OTP generated for {}: {}", email, otp);
+        log.info("Password reset OTP generated for {}: {}", cleanEmail, otp);
 
         if (emailEnabled && mailSender != null) {
             try {
                 SimpleMailMessage msg = new SimpleMailMessage();
                 msg.setFrom(mailFrom != null && !mailFrom.isBlank() ? mailFrom : "noreply@nptelmanager.com");
-                msg.setTo(email);
+                msg.setTo(cleanEmail);
                 msg.setSubject("[NPTEL Manager] Password Reset OTP Verification");
                 msg.setText("Hello " + user.getFullName() + ",\n\n"
                     + "Your One-Time Password (OTP) for resetting your SWAYAM NPTEL Assignment Manager account password is:\n\n"
@@ -99,16 +115,17 @@ public class UserService {
                     + "This OTP is valid for 15 minutes. If you did not request this, please ignore this email.\n\n"
                     + "Regards,\nSWAYAM NPTEL Assignment Manager");
                 mailSender.send(msg);
-                log.info("Reset OTP email sent to {}", email);
+                log.info("Reset OTP email sent to {}", cleanEmail);
             } catch (Exception e) {
-                log.error("Failed to send password reset email to {}: {}", email, e.getMessage());
+                log.error("Failed to send password reset email to {}: {}", cleanEmail, e.getMessage());
             }
         }
         return otp;
     }
 
     public void verifyAndResetPassword(String email, String otp, String newPassword) {
-        User user = userRepository.findByEmail(email)
+        String cleanEmail = email != null ? email.trim().toLowerCase() : "";
+        User user = userRepository.findByEmailIgnoreCase(cleanEmail)
             .orElseThrow(() -> new IllegalArgumentException("No account registered with email: " + email));
 
         if (user.getResetToken() == null || user.getResetTokenExpiry() == null) {

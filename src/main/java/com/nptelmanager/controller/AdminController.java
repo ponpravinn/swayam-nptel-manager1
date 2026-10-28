@@ -232,11 +232,45 @@ public class AdminController {
         return "redirect:/admin/examinations";
     }
 
-    // ---- User Management ----
-    @GetMapping("/users")
+    // ---- User & Database Management ----
+    @GetMapping({"/users", "/database"})
     public String listUsers(Model model) {
-        model.addAttribute("users", userRepository.findAll());
+        List<User> users = userRepository.findAll();
+        model.addAttribute("users", users);
+        model.addAttribute("totalUsers", users.size());
+        model.addAttribute("studentCount", users.stream().filter(u -> u.getRole() == User.Role.STUDENT).count());
+        model.addAttribute("adminCount", users.stream().filter(u -> u.getRole() == User.Role.ADMIN).count());
+        model.addAttribute("totalCourses", courseService.getAllAdminCourses().size());
+        model.addAttribute("totalAssignments", assignmentService.getAllAdminAssignments().size());
+        model.addAttribute("totalExams", examinationService.getAllPublished().size());
+        model.addAttribute("activePage", "admin-users");
         return "admin/users";
+    }
+
+    @GetMapping("/users/export-csv")
+    public org.springframework.http.ResponseEntity<byte[]> exportUsersCsv() {
+        List<User> users = userRepository.findAll();
+        StringBuilder csv = new StringBuilder();
+        csv.append("User ID,Full Name,Email,Phone,Institution / College,Department,Roll Number,Role,Status,Registered At\n");
+        for (User u : users) {
+            csv.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                u.getId() != null ? u.getId() : "",
+                u.getFullName() != null ? u.getFullName().replace("\"", "\"\"") : "",
+                u.getEmail() != null ? u.getEmail() : "",
+                u.getPhone() != null ? u.getPhone() : "",
+                u.getCollege() != null ? u.getCollege().replace("\"", "\"\"") : "",
+                u.getDepartment() != null ? u.getDepartment().replace("\"", "\"\"") : "",
+                u.getRollNumber() != null ? u.getRollNumber() : "",
+                u.getRole() != null ? u.getRole().name() : "",
+                u.isEnabled() ? "Active" : "Disabled",
+                u.getCreatedAt() != null ? u.getCreatedAt().toString() : ""
+            ));
+        }
+        byte[] bytes = csv.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        return org.springframework.http.ResponseEntity.ok()
+            .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"swayam_nptel_registered_users.csv\"")
+            .contentType(org.springframework.http.MediaType.parseMediaType("text/csv"))
+            .body(bytes);
     }
 
     @PostMapping("/users/toggle/{id}")

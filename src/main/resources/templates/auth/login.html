@@ -40,13 +40,14 @@
                         <span th:text="${successMsg}"></span>
                     </div>
 
-                    <form th:action="@{/auth/login}" method="post">
+                    <form th:action="@{/auth/login}" method="post" onsubmit="document.getElementById('loginEmail').value = document.getElementById('loginEmail').value.trim().toLowerCase();">
                         <div class="mb-3">
                             <label class="form-label small fw-semibold">Email Address</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="bi bi-envelope text-muted"></i></span>
-                                <input type="email" name="email" class="form-control"
-                                       placeholder="your@email.com" required autofocus>
+                                <input type="email" id="loginEmail" name="email" class="form-control"
+                                       placeholder="your@email.com" required autofocus
+                                       oninput="this.value = this.value.toLowerCase()">
                             </div>
                         </div>
                         <div class="mb-4">
