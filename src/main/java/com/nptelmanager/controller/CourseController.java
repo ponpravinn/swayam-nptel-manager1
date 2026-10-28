@@ -22,6 +22,9 @@ public class CourseController {
 
     private final UserService userService;
     private final CourseService courseService;
+    private final NptelSyncService nptelSyncService;
+    private final NptelScoringService nptelScoringService;
+    private final AssignmentService assignmentService;
 
     @GetMapping
     public String listCourses(@AuthenticationPrincipal UserDetails userDetails, Model model) {
@@ -44,6 +47,7 @@ public class CourseController {
         model.addAttribute("enrolledCourseIds", enrolledCourseIds);
         model.addAttribute("assignmentCounts", assignmentCounts);
         model.addAttribute("examsMap", examsMap);
+        model.addAttribute("masterCatalog", nptelSyncService.getMasterCatalog());
         model.addAttribute("student", student);
         return "courses/list";
     }
@@ -103,5 +107,47 @@ public class CourseController {
         courseService.unenroll(student, courseId);
         redirectAttrs.addFlashAttribute("successMsg", "Course removed from your list.");
         return "redirect:/courses";
+    }
+
+    @PostMapping("/sync-nptel")
+    public String syncNptelCourse(@AuthenticationPrincipal UserDetails userDetails,
+                                  @RequestParam String nptelInput,
+                                  RedirectAttributes ra) {
+        User student = userService.getByEmail(userDetails.getUsername());
+        try {
+            Course course = nptelSyncService.syncAndPublishCourse(nptelInput);
+            try {
+                courseService.enrollInCourse(student, course);
+                ra.addFlashAttribute("successMsg", "Successfully imported and enrolled in official SWAYAM NPTEL course: '" 
+                        + course.getCourseName() + "' (" + course.getCourseCode() + ") with all weekly assignments & exam schedule!");
+            } catch (IllegalArgumentException alreadyEnrolled) {
+                ra.addFlashAttribute("successMsg", "Course '" + course.getCourseName() + "' is already enrolled and up to date!");
+            }
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "Failed to sync NPTEL course: " + e.getMessage());
+        }
+        return "redirect:/courses";
+    }
+
+    @GetMapping("/{id}/score-calculator")
+    public String scoreCalculator(@PathVariable Long id,
+                                  @RequestParam(required = false) Double examScore,
+                                  @AuthenticationPrincipal UserDetails userDetails,
+                                  Model model) {
+        User student = userService.getByEmail(userDetails.getUsername());
+        Course course = courseService.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+        List<StudentAssignment> assignments = assignmentService.getStudentAssignments(student).stream()
+                .filter(sa -> sa.getAssignment().getCourse().getId().equals(id))
+                .toList();
+
+        var scoreSummary = nptelScoringService.calculateScore(course, assignments, examScore);
+
+        model.addAttribute("course", course);
+        model.addAttribute("assignments", assignments);
+        model.addAttribute("scoreSummary", scoreSummary);
+        model.addAttribute("simulatedExamScore", examScore);
+        model.addAttribute("student", student);
+        return "courses/score-calculator";
     }
 }

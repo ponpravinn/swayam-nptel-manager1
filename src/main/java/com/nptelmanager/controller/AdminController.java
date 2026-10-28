@@ -34,6 +34,7 @@ public class AdminController {
     private final ExaminationService examinationService;
     private final CsvImportService csvImportService;
     private final UserRepository userRepository;
+    private final NptelSyncService nptelSyncService;
 
     @GetMapping
     public String adminDashboard(Model model) {
@@ -128,6 +129,17 @@ public class AdminController {
             ra.addFlashAttribute("successMsg", "Official SWAYAM NPTEL course '" + c.getCourseName() + "' published successfully with all weekly assignments and examination details!");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", "Failed to publish course: " + e.getMessage());
+        }
+        return "redirect:/admin";
+    }
+
+    @PostMapping("/courses/sync-nptel")
+    public String adminSyncNptelCourse(@RequestParam String nptelInput, RedirectAttributes ra) {
+        try {
+            Course c = nptelSyncService.syncAndPublishCourse(nptelInput);
+            ra.addFlashAttribute("successMsg", "Official SWAYAM NPTEL course '" + c.getCourseName() + "' (" + c.getCourseCode() + ") synchronized and published globally with all weekly assignments and examination details!");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "Failed to sync NPTEL course: " + e.getMessage());
         }
         return "redirect:/admin";
     }

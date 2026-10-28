@@ -6,11 +6,18 @@ A complete full-stack web application built with **Java 17 + Spring Boot 3** to 
 
 ## 🚀 Quick Start (Zero Configuration)
 
-The application uses **H2 embedded database by default** — no MySQL installation required to run immediately.
+The application uses **H2 embedded database by default** with permanent file persistence (`./data/npteldb.mv.db`) — no MySQL installation required to run immediately.
 
 ### One-Click Windows Launchers (Easiest)
 - **Start Application**: Double-click [`run.bat`](run.bat) (or execute `.\run.bat` in PowerShell/CMD)
 - **Run All Tests**: Double-click [`run-tests.bat`](run-tests.bat)
+
+### Key Real-World Upgrades
+- 📲 **Automated WhatsApp Notifications**: Direct deadline and exam reminders to student WhatsApp numbers, 1-click share links, and instant test alert button.
+- 🗄️ **Full Academic Database Persistence**: Captures Institution / College Name, Department / Branch, Roll Number, Phone / WhatsApp, with case-insensitive authentication (`findByEmailIgnoreCase`).
+- 🔍 **Database & Registered Users Explorer**: Admin view at `/admin/database` with live search, CSV export (`/admin/users/export-csv`), and H2 Web Console access.
+- 🌐 **Authentic SWAYAM NPTEL Sync Engine**: Ingest and sync real NPTEL courses (Cloud Computing, Java, Python for Data Science, IoT, DBMS, Machine Learning, Deep Learning, Cyber Security, Electric Vehicles, Organizational Behaviour), generating real weekly assignments with direct SWAYAM unit links (`/unit?unit=N`) and official TCS iON exam schedules.
+- 🎯 **Official NPTEL Scoring & Certificate Predictor**: Implements authentic IIT/IISc certification criteria: Continuous Assessment (25%, Best 8 of 12 / Best 6 of 8) + Proctored Exam (75%), computing required scores for Elite + Gold ($\ge 90\%$), Elite + Silver ($\ge 75\%$), Elite ($\ge 60\%$), and Pass ($\ge 40\%$).
 
 ### Prerequisites
 - **Java 17** (already installed — confirmed at `C:\Program Files\Java\jdk-17`)
@@ -166,19 +173,21 @@ mvnw.cmd test
 
 | URL | Description |
 |-----|-------------|
-| `/auth/login` | Login page |
-| `/auth/register` | Student registration |
+| `/auth/login` | Login page (case-insensitive) |
+| `/auth/register` | Student registration (College, Dept, Roll No, WhatsApp) |
 | `/dashboard` | Main dashboard with stats |
-| `/courses` | View and manage courses |
+| `/courses` | View courses & SWAYAM NPTEL Sync engine |
 | `/courses/add` | Add a new course |
-| `/assignments` | View all assignments |
+| `/courses/{id}/score-calculator` | Official NPTEL Score & Certificate Predictor |
+| `/assignments` | View all assignments with WhatsApp share buttons |
 | `/assignments/add` | Add a new assignment |
 | `/examinations` | View examinations |
 | `/examinations/{id}` | Exam detail and registration |
 | `/calendar` | Calendar with all events |
-| `/notifications` | All notifications |
-| `/settings` | Profile and password settings |
-| `/admin` | Admin panel (admin only) |
+| `/notifications` | All notifications with WhatsApp buttons |
+| `/settings` | Profile, WhatsApp notification settings & test alert |
+| `/admin` | Admin dashboard with SWAYAM sync bar |
+| `/admin/database` | Database & Registered Users Explorer with CSV export |
 | `/h2-console` | H2 database console |
 
 ---
