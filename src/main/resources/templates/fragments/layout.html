@@ -102,6 +102,12 @@
                 </a>
             </li>
             <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin/courses/add}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2"
+                   th:classappend="${activePage == 'admin-add-course' ? 'active bg-white bg-opacity-25 rounded mx-2' : ''}">
+                    <i class="bi bi-plus-circle"></i> <span>Create Course</span>
+                </a>
+            </li>
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                 <a th:href="@{/admin/users}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2">
                     <i class="bi bi-people"></i> <span>Users</span>
                 </a>
