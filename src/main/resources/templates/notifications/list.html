@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: layout(
           pageTitle='Notifications',
@@ -44,6 +44,10 @@
                         <div class="d-flex justify-content-between">
                             <div class="fw-semibold small" th:text="${n.title ?: 'Notification'}">Title</div>
                             <div class="d-flex align-items-center gap-2">
+                                <span th:if="${n.sentViaWhatsapp}" class="badge bg-success-subtle text-success border border-success-subtle"
+                                      style="font-size:0.65rem;" title="Dispatched to Student's WhatsApp">
+                                    <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                                </span>
                                 <span th:if="${!n.isRead()}" class="badge bg-primary rounded-pill"
                                       style="font-size:0.6rem;">NEW</span>
                                 <span class="text-muted" style="font-size:0.72rem;"
@@ -51,7 +55,7 @@
                             </div>
                         </div>
                         <p class="mb-1 small mt-1" th:text="${n.message}">Message</p>
-                        <div class="d-flex gap-2 mt-2">
+                        <div class="d-flex gap-2 mt-2 align-items-center flex-wrap">
                             <form th:if="${!n.isRead()}"
                                   th:action="@{/notifications/read/{id}(id=${n.id})}" method="post">
                                 <button type="submit" class="btn btn-xs btn-outline-primary py-0 px-2"
@@ -64,6 +68,11 @@
                                th:href="@{/examinations/{id}(id=${n.relatedExaminationId})}"
                                class="btn btn-xs btn-outline-secondary py-0 px-2"
                                style="font-size:0.72rem;">View Exam</a>
+                            <a th:href="@{/notifications/whatsapp/{id}(id=${n.id})}" target="_blank"
+                               class="btn btn-xs btn-success py-0 px-2 text-white"
+                               style="font-size:0.72rem;" title="Forward / Open in WhatsApp">
+                                <i class="bi bi-whatsapp me-1"></i>Open in WhatsApp
+                            </a>
                         </div>
                     </div>
                 </div>

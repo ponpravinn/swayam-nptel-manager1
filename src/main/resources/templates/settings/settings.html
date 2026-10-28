@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: layout(
           pageTitle='Settings',
@@ -45,12 +45,20 @@
                             <input type="text" th:field="*{department}" class="form-control" placeholder="Department">
                         </div>
                         <div class="col-12">
-                            <div class="form-check form-switch">
+                            <div class="form-check form-switch mb-2">
                                 <input class="form-check-input" type="checkbox" id="emailNotif"
                                        th:field="*{emailNotificationsEnabled}">
                                 <label class="form-check-label small" for="emailNotif">
-                                    Enable Email Notifications
+                                    <i class="bi bi-envelope me-1"></i> Enable Email Notifications
                                 </label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="whatsappNotif"
+                                       th:field="*{whatsappNotificationsEnabled}">
+                                <label class="form-check-label small fw-semibold text-success" for="whatsappNotif">
+                                    <i class="bi bi-whatsapp me-1"></i> Enable WhatsApp Notifications
+                                </label>
+                                <div class="form-text small text-muted">Receive assignment deadlines and exam alerts directly on your WhatsApp number.</div>
                             </div>
                         </div>
                     </div>
@@ -58,6 +66,35 @@
                         <i class="bi bi-save me-1"></i>Save Profile
                     </button>
                 </form>
+
+                <!-- WhatsApp Test Alert Card -->
+                <div class="mt-4 p-3 border rounded bg-light">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <strong class="small text-success d-flex align-items-center gap-1">
+                                <i class="bi bi-whatsapp fs-5"></i> Test WhatsApp Notification
+                            </strong>
+                            <p class="small text-muted mb-0">Verify WhatsApp alert delivery to your phone number (<span th:text="${student.phone ?: 'No phone added'}">+91...</span>).</p>
+                        </div>
+                        <form th:action="@{/notifications/test-whatsapp}" method="post" class="d-flex gap-2 align-items-center">
+                            <input type="hidden" name="phone" th:value="${student.phone}">
+                            <button type="submit" class="btn btn-sm btn-success text-white shadow-sm">
+                                <i class="bi bi-send-fill me-1"></i> Send Test Alert
+                            </button>
+                        </form>
+                    </div>
+                    <div th:if="${whatsappDirectUrl != null}" class="mt-3 p-3 bg-white border border-success rounded">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div>
+                                <span class="badge bg-success mb-1"><i class="bi bi-check2-circle me-1"></i> Alert Formatted</span>
+                                <div class="small fw-semibold">Click to open this alert in WhatsApp:</div>
+                            </div>
+                            <a th:href="${whatsappDirectUrl}" target="_blank" class="btn btn-success btn-sm text-white">
+                                <i class="bi bi-whatsapp me-1"></i> Open in WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

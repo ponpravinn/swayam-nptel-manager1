@@ -22,6 +22,7 @@ public class AssignmentController {
     private final UserService userService;
     private final AssignmentService assignmentService;
     private final CourseService courseService;
+    private final WhatsAppService whatsAppService;
 
     @GetMapping
     public String listAssignments(@AuthenticationPrincipal UserDetails userDetails,
@@ -164,5 +165,18 @@ public class AssignmentController {
             .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"my_nptel_assignments.csv\"")
             .contentType(org.springframework.http.MediaType.parseMediaType("text/csv"))
             .body(bytes);
+    }
+
+    @GetMapping("/share-whatsapp/{id}")
+    public String shareAssignmentOnWhatsApp(@PathVariable Long id,
+                                            @AuthenticationPrincipal UserDetails userDetails) {
+        User student = userService.getByEmail(userDetails.getUsername());
+        StudentAssignment sa = assignmentService.findStudentAssignmentById(id).orElse(null);
+        if (sa == null) {
+            return "redirect:/assignments";
+        }
+        String text = whatsAppService.formatAssignmentShare(sa.getAssignment());
+        String url = whatsAppService.buildClickToChatUrl(student.getPhone(), text);
+        return "redirect:" + url;
     }
 }

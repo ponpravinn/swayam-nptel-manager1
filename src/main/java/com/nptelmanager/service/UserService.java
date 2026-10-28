@@ -60,6 +60,7 @@ public class UserService {
         existing.setDepartment(updatedUser.getDepartment());
         existing.setRollNumber(updatedUser.getRollNumber());
         existing.setEmailNotificationsEnabled(updatedUser.isEmailNotificationsEnabled());
+        existing.setWhatsappNotificationsEnabled(updatedUser.isWhatsappNotificationsEnabled());
         return userRepository.save(existing);
     }
 

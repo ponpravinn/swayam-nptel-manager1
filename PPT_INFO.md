@@ -53,10 +53,12 @@ This document provides a factual, code-verified reference dossier for project pr
 - **NPTEL Examination Tracker**: Monitor registration open/close dates, exam dates, shifts, and update registration status (Registered, Fee Paid, Hall Ticket Downloaded). (`ExaminationController`, `ExaminationService`)
 - **Academic Calendar View**: Monthly, weekly, and daily FullCalendar view of all submission deadlines and examination dates. (`CalendarController`)
 - **Notification Inbox**: View automated alerts for deadlines, mark individual alerts as read, or mark all as read. (`NotificationController`, `NotificationService`)
-- **Account & Notification Settings**: Update personal details, contact number, and toggle email notification preferences. (`SettingsController`, `UserService`)
+- **WhatsApp Deadline Alerts & Direct Share**: Receive automated assignment deadline and examination alerts directly on WhatsApp. Toggle preferences in Settings, trigger instant test notifications, and click one-click WhatsApp share buttons on assignments and examinations to open alerts directly in WhatsApp Web or mobile. (`WhatsAppService`, `NotificationController`, `NotificationService`)
+- **Account & Notification Settings**: Update personal details, contact number, and toggle both Email and WhatsApp notification preferences. (`SettingsController`, `UserService`)
 
 ### Administrator Features
 - **Admin Dashboard**: Overview of system metrics including total users, courses, assignments, and system-wide enrollments. (`AdminController`, `CourseService`, `UserService`)
+- **Direct Student WhatsApp Follow-up**: View student WhatsApp contact badges in User Management and initiate direct WhatsApp conversations for urgent deadline follow-ups. (`AdminController`, `WhatsAppService`)
 - **Course Administration**: Create, edit, and delete NPTEL courses including course codes, instructor names, and timelines. (`CourseController`, `CourseService`)
 - **Assignment Scheduling**: Define assignment titles, week numbers, and submission deadlines per course. (`AssignmentController`, `AssignmentService`)
 - **Examination Management**: Create exam slots, define shifts, specify registration fee amounts, and set registration deadline windows. (`AdminController`, `ExaminationService`)

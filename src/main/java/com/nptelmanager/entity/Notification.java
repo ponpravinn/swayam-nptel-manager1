@@ -31,8 +31,16 @@ public class Notification {
     @Column(nullable = false)
     private NotificationType type;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean isRead = false;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean sentViaWhatsapp = false;
+
+    @Column(length = 50)
+    private String whatsappStatus;
 
     // Link back to the related entity (optional)
     private Long relatedAssignmentId;

@@ -138,6 +138,12 @@
                                     <i class="bi bi-box-arrow-up-right"></i>
                                 </a>
 
+                                <!-- Share on WhatsApp -->
+                                <a th:href="@{/assignments/share-whatsapp/{id}(id=${sa.id})}"
+                                   target="_blank" class="btn btn-sm btn-outline-success py-1 px-2" title="Remind me / Share on WhatsApp">
+                                    <i class="bi bi-whatsapp"></i>
+                                </a>
+
                                 <!-- Edit -->
                                 <a th:href="@{/assignments/edit/{id}(id=${sa.assignment.id})}"
                                    class="btn btn-sm btn-outline-secondary py-1 px-2" title="Edit">

@@ -88,7 +88,7 @@
                                         <i class="bi bi-check2-circle"></i>
                                     </button>
                                 </form>
-                                <!-- Mark Fee Paid -->
+                                 <!-- Mark Fee Paid -->
                                 <form th:if="${er.paymentStatus.name() != 'PAID'}"
                                       th:action="@{/examinations/payment-status/{id}(id=${er.examination.id})}"
                                       method="post" class="d-inline">
@@ -97,6 +97,11 @@
                                         <i class="bi bi-credit-card"></i>
                                     </button>
                                 </form>
+                                <!-- Share on WhatsApp -->
+                                <a th:href="@{/examinations/share-whatsapp/{id}(id=${er.examination.id})}" target="_blank"
+                                   class="btn btn-sm btn-outline-success py-1 px-2" title="Share Exam Alert on WhatsApp">
+                                    <i class="bi bi-whatsapp"></i>
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -160,6 +165,10 @@
                         <a th:if="${exam.registrationUrl}" th:href="${exam.registrationUrl}"
                            target="_blank" class="btn btn-sm btn-outline-success" title="Register">
                             <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                        <a th:href="@{/examinations/share-whatsapp/{id}(id=${exam.id})}" target="_blank"
+                           class="btn btn-sm btn-success text-white" title="Share Exam on WhatsApp">
+                            <i class="bi bi-whatsapp"></i>
                         </a>
                     </div>
                 </div>

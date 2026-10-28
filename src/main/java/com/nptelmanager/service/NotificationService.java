@@ -21,6 +21,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final JavaMailSender mailSender;
+    private final WhatsAppService whatsAppService;
 
     @Value("${spring.mail.enabled:false}")
     private boolean emailEnabled;
@@ -59,7 +60,25 @@ public class NotificationService {
             sendEmail(user.getEmail(), title != null ? title : "NPTEL Manager Notification", message);
         }
 
+        // Send WhatsApp alert if student has phone and notifications enabled
+        if (user.getPhone() != null && !user.getPhone().trim().isEmpty() && user.isWhatsappNotificationsEnabled()) {
+            try {
+                boolean sent = whatsAppService.sendNotification(user, title != null ? title : "SWAYAM NPTEL Alert", message);
+                saved.setSentViaWhatsapp(sent);
+                saved.setWhatsappStatus(sent ? "DELIVERED" : "PENDING");
+                notificationRepository.save(saved);
+            } catch (Exception e) {
+                log.warn("Failed to dispatch WhatsApp alert: {}", e.getMessage());
+                saved.setWhatsappStatus("FAILED");
+            }
+        }
+
         return saved;
+    }
+
+    @Transactional(readOnly = true)
+    public Notification findById(Long id) {
+        return notificationRepository.findById(id).orElse(null);
     }
 
     @Transactional(readOnly = true)

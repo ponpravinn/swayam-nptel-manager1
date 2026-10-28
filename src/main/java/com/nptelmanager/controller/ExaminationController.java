@@ -20,6 +20,7 @@ public class ExaminationController {
     private final UserService userService;
     private final ExaminationService examinationService;
     private final CourseService courseService;
+    private final WhatsAppService whatsAppService;
 
     @GetMapping
     public String listExaminations(@AuthenticationPrincipal UserDetails userDetails, Model model) {
@@ -84,5 +85,18 @@ public class ExaminationController {
         examinationService.updatePaymentStatus(student, examId, payStatus);
         redirectAttrs.addFlashAttribute("successMsg", "Payment status updated!");
         return "redirect:/examinations";
+    }
+
+    @GetMapping("/share-whatsapp/{id}")
+    public String shareExamOnWhatsApp(@PathVariable Long id,
+                                      @AuthenticationPrincipal UserDetails userDetails) {
+        User student = userService.getByEmail(userDetails.getUsername());
+        Examination exam = examinationService.findById(id).orElse(null);
+        if (exam == null) {
+            return "redirect:/examinations";
+        }
+        String text = whatsAppService.formatExamShare(exam);
+        String url = whatsAppService.buildClickToChatUrl(student.getPhone(), text);
+        return "redirect:" + url;
     }
 }

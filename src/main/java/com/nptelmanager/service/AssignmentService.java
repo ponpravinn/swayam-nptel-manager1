@@ -42,6 +42,16 @@ public class AssignmentService {
         return studentAssignmentRepository.findByStudentIdAndAssignmentId(student.getId(), assignmentId);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<StudentAssignment> findStudentAssignmentById(Long studentAssignmentId) {
+        return studentAssignmentRepository.findById(studentAssignmentId);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Assignment> findAssignmentById(Long assignmentId) {
+        return assignmentRepository.findById(assignmentId);
+    }
+
     /**
      * Add a new assignment to a course the student is enrolled in, and create StudentAssignment record.
      */

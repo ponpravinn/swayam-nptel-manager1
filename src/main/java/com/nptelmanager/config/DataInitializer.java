@@ -61,11 +61,19 @@ public class DataInitializer implements CommandLineRunner {
                 .email("student@demo.com")
                 .password(passwordEncoder.encode("Student@123"))
                 .role(User.Role.STUDENT)
+                .phone("+91 9876543210")
                 .college("Engineering College")
                 .department("Computer Science and Engineering")
                 .rollNumber("CSE202401")
                 .enabled(true)
+                .whatsappNotificationsEnabled(true)
                 .build()));
+
+        if (student.getPhone() == null || student.getPhone().isBlank()) {
+            student.setPhone("+91 9876543210");
+            student.setWhatsappNotificationsEnabled(true);
+            userRepository.save(student);
+        }
 
         // 2. Course: The Joy of Computing using Python (1st Year - Completed)
         if (!courseRepository.existsByCourseCode("noc23-cs108")) {
@@ -318,7 +326,10 @@ public class DataInitializer implements CommandLineRunner {
             "ALTER TABLE users ALTER COLUMN roll_number VARCHAR(50)",
             "ALTER TABLE users ALTER COLUMN phone VARCHAR(20)",
             "ALTER TABLE users ALTER COLUMN college VARCHAR(150)",
-            "ALTER TABLE users ALTER COLUMN department VARCHAR(100)"
+            "ALTER TABLE users ALTER COLUMN department VARCHAR(100)",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS whatsapp_notifications_enabled BOOLEAN DEFAULT TRUE",
+            "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS sent_via_whatsapp BOOLEAN DEFAULT FALSE",
+            "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS whatsapp_status VARCHAR(50)"
         };
         for (String sql : h2AlterStatements) {
             try {

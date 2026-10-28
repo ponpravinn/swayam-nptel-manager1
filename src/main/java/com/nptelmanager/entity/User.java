@@ -49,15 +49,22 @@ public class User {
     @Column(length = 50)
     private String rollNumber;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.STUDENT;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean enabled = true;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean emailNotificationsEnabled = true;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean whatsappNotificationsEnabled = true;
 
     @Column(length = 100)
     private String resetToken;
@@ -71,9 +78,11 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<StudentCourse> enrolledCourses = new HashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Notification> notifications = new HashSet<>();
 

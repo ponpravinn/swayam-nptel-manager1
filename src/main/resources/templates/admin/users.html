@@ -39,7 +39,17 @@
                                 </div>
                                 <div>
                                     <div class="fw-semibold small" th:text="${u.fullName}">Name</div>
-                                    <div class="text-muted" style="font-size:0.72rem;" th:text="${u.phone ?: '-'}"></div>
+                                    <div class="d-flex align-items-center gap-1 mt-1">
+                                        <span class="text-muted" style="font-size:0.72rem;" th:text="${u.phone ?: '-'}"></span>
+                                        <a th:if="${u.phone != null and !u.phone.isBlank()}"
+                                           th:href="'https://wa.me/' + ${#strings.replace(u.phone, ' ', '').replace('+', '').replace('-', '')} + '?text=Hello%20' + ${u.fullName} + '%2C%20this%20is%20a%20reminder%20from%20SWAYAM%20NPTEL%20Manager%20regarding%20your%20course%20deadlines.'"
+                                           target="_blank"
+                                           class="badge bg-success text-white text-decoration-none px-1"
+                                           style="font-size:0.65rem;"
+                                           title="Chat with Student on WhatsApp">
+                                            <i class="bi bi-whatsapp"></i> Chat
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </td>
@@ -56,9 +66,14 @@
                                   th:text="${u.enabled} ? 'Active' : 'Disabled'">Active</span>
                         </td>
                         <td>
-                            <span class="badge"
-                                  th:classappend="${u.emailNotificationsEnabled} ? 'bg-success' : 'bg-secondary'"
-                                  th:text="${u.emailNotificationsEnabled} ? 'Email On' : 'Email Off'">On</span>
+                            <div class="d-flex flex-column gap-1">
+                                <span class="badge"
+                                      th:classappend="${u.emailNotificationsEnabled} ? 'bg-success' : 'bg-secondary'"
+                                      th:text="${u.emailNotificationsEnabled} ? 'Email: ON' : 'Email: OFF'">On</span>
+                                <span class="badge"
+                                      th:classappend="${u.whatsappNotificationsEnabled} ? 'bg-success' : 'bg-secondary'"
+                                      th:text="${u.whatsappNotificationsEnabled} ? 'WhatsApp: ON' : 'WhatsApp: OFF'">On</span>
+                            </div>
                         </td>
                         <td class="text-center">
                             <form th:action="@{/admin/users/toggle/{id}(id=${u.id})}" method="post" class="d-inline">
