@@ -16,6 +16,7 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     List<Assignment> findByCourse(Course course);
     List<Assignment> findByCourseId(Long courseId);
     List<Assignment> findByCourseIdOrderByDueDateAsc(Long courseId);
+    long countByCourseId(Long courseId);
 
     @Query("SELECT a FROM Assignment a WHERE a.course.id IN :courseIds ORDER BY a.dueDate ASC")
     List<Assignment> findByCourseIdIn(@Param("courseIds") List<Long> courseIds);

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: layout(
           pageTitle='User Management',
@@ -39,12 +39,12 @@
                                 </div>
                                 <div>
                                     <div class="fw-semibold small" th:text="${u.fullName}">Name</div>
-                                    <div class="text-muted" style="font-size:0.72rem;" th:text="${u.phone ?: 'â€”'}"></div>
+                                    <div class="text-muted" style="font-size:0.72rem;" th:text="${u.phone ?: '-'}"></div>
                                 </div>
                             </div>
                         </td>
                         <td class="small" th:text="${u.email}">email</td>
-                        <td class="small" th:text="${u.college ?: 'â€”'}">college</td>
+                        <td class="small" th:text="${u.college ?: '-'}">college</td>
                         <td>
                             <span class="badge"
                                   th:classappend="${u.role.name() == 'ADMIN'} ? 'bg-danger' : 'bg-primary'"

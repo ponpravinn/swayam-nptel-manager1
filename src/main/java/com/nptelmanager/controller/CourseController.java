@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/courses")
@@ -29,9 +31,19 @@ public class CourseController {
         java.util.Set<Long> enrolledCourseIds = myCourses.stream()
             .map(sc -> sc.getCourse().getId())
             .collect(java.util.stream.Collectors.toSet());
+
+        Map<Long, Long> assignmentCounts = new HashMap<>();
+        Map<Long, Examination> examsMap = new HashMap<>();
+        for (Course c : adminCourses) {
+            assignmentCounts.put(c.getId(), courseService.getAssignmentCount(c.getId()));
+            courseService.getExamForCourse(c.getId()).ifPresent(e -> examsMap.put(c.getId(), e));
+        }
+
         model.addAttribute("myCourses", myCourses);
         model.addAttribute("adminCourses", adminCourses);
         model.addAttribute("enrolledCourseIds", enrolledCourseIds);
+        model.addAttribute("assignmentCounts", assignmentCounts);
+        model.addAttribute("examsMap", examsMap);
         model.addAttribute("student", student);
         return "courses/list";
     }
@@ -55,7 +67,9 @@ public class CourseController {
             Course course = courseService.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
             courseService.enrollInCourse(student, course);
-            redirectAttrs.addFlashAttribute("successMsg", "Enrolled in course successfully!");
+            long count = courseService.getAssignmentCount(courseId);
+            redirectAttrs.addFlashAttribute("successMsg",
+                "Successfully enrolled in '" + course.getCourseName() + "'! " + count + " weekly assignments and exam details are now synced to your dashboard.");
         } catch (IllegalArgumentException e) {
             redirectAttrs.addFlashAttribute("errorMsg", e.getMessage());
         }

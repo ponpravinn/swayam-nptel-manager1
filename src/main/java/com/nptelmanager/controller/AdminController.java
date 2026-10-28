@@ -4,6 +4,7 @@ import com.nptelmanager.entity.*;
 import com.nptelmanager.repository.UserRepository;
 import com.nptelmanager.service.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,7 +15,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -32,22 +38,97 @@ public class AdminController {
     @GetMapping
     public String adminDashboard(Model model) {
         List<Course> courses = courseService.getAllAdminCourses();
+        Map<Long, Long> assignmentCounts = new HashMap<>();
+        Map<Long, Long> studentCounts = new HashMap<>();
+        Map<Long, Examination> examsMap = new HashMap<>();
+
+        for (Course c : courses) {
+            assignmentCounts.put(c.getId(), courseService.getAssignmentCount(c.getId()));
+            studentCounts.put(c.getId(), courseService.getEnrolledCount(c.getId()));
+            courseService.getExamForCourse(c.getId()).ifPresent(exam -> examsMap.put(c.getId(), exam));
+        }
+
+        Set<String> publishedCodes = courses.stream()
+            .map(c -> c.getCourseCode().toLowerCase())
+            .collect(Collectors.toSet());
+
         model.addAttribute("courses", courses);
+        model.addAttribute("assignmentCounts", assignmentCounts);
+        model.addAttribute("studentCounts", studentCounts);
+        model.addAttribute("examsMap", examsMap);
+        model.addAttribute("officialPresets", courseService.getOfficialPresets());
+        model.addAttribute("publishedCodes", publishedCodes);
+        model.addAttribute("totalStudents", userRepository.count());
+        model.addAttribute("totalAssignments", assignmentService.getAllAdminAssignments().size());
+        model.addAttribute("totalExams", examinationService.getAllPublished().size());
         return "admin/dashboard";
     }
 
     // ---- Course Management ----
     @GetMapping("/courses/add")
     public String addCourseForm(Model model) {
-        model.addAttribute("course", new Course());
+        Course course = new Course();
+        course.setDuration("12 Weeks");
+        course.setSemester("Jul-Oct 2026");
+        model.addAttribute("course", course);
         return "admin/course-form";
     }
 
     @PostMapping("/courses/add")
-    public String addCourse(@ModelAttribute Course course, RedirectAttributes ra) {
-        course.setAdminCreated(true);
-        courseService.saveCourse(course);
-        ra.addFlashAttribute("successMsg", "Course created and published!");
+    public String addCourse(@ModelAttribute Course course,
+                            @RequestParam(defaultValue = "false") boolean generateAssignments,
+                            @RequestParam(defaultValue = "12") Integer numberOfWeeks,
+                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime firstAssignmentDueDate,
+                            @RequestParam(defaultValue = "false") boolean scheduleExam,
+                            @RequestParam(required = false) String examSession,
+                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate examDate,
+                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime examStartTime,
+                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime examEndTime,
+                            @RequestParam(required = false) BigDecimal registrationFee,
+                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate registrationOpenDate,
+                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate registrationCloseDate,
+                            @RequestParam(required = false) String examCenter,
+                            @RequestParam(required = false) String examMode,
+                            RedirectAttributes ra) {
+        try {
+            Course saved = courseService.createFullCourse(
+                course,
+                generateAssignments,
+                numberOfWeeks,
+                firstAssignmentDueDate,
+                scheduleExam,
+                examSession,
+                examDate,
+                examStartTime,
+                examEndTime,
+                registrationFee,
+                registrationOpenDate,
+                registrationCloseDate,
+                examCenter,
+                examMode
+            );
+            String msg = "Course '" + saved.getCourseName() + "' published successfully!";
+            if (generateAssignments) {
+                msg += " " + numberOfWeeks + " weekly assignments created.";
+            }
+            if (scheduleExam) {
+                msg += " Certification examination scheduled.";
+            }
+            ra.addFlashAttribute("successMsg", msg);
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "Error adding course: " + e.getMessage());
+        }
+        return "redirect:/admin";
+    }
+
+    @PostMapping("/courses/quick-publish/{presetCode}")
+    public String quickPublishCourse(@PathVariable String presetCode, RedirectAttributes ra) {
+        try {
+            Course c = courseService.publishPreset(presetCode);
+            ra.addFlashAttribute("successMsg", "Official SWAYAM NPTEL course '" + c.getCourseName() + "' published successfully with all weekly assignments and examination details!");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "Failed to publish course: " + e.getMessage());
+        }
         return "redirect:/admin";
     }
 

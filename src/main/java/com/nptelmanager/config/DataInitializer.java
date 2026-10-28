@@ -5,6 +5,7 @@ import com.nptelmanager.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -35,10 +36,14 @@ public class DataInitializer implements CommandLineRunner {
     private final ExaminationRepository examinationRepository;
     private final ExaminationRegistrationRepository examRegistrationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public void run(String... args) {
         log.info("Checking and seeding authentic SWAYAM NPTEL course data...");
+
+        // Auto-migrate column sizes for existing database files (both H2 and MySQL supported)
+        migrateColumnLengths();
 
         // 1. Ensure Admin and Student accounts exist
         User admin = userRepository.findByEmail("admin@nptelmanager.com")
@@ -305,6 +310,33 @@ public class DataInitializer implements CommandLineRunner {
                 .registrationStatus(regStatus)
                 .paymentStatus(payStatus)
                 .build());
+        }
+    }
+
+    private void migrateColumnLengths() {
+        String[] h2AlterStatements = {
+            "ALTER TABLE users ALTER COLUMN roll_number VARCHAR(50)",
+            "ALTER TABLE users ALTER COLUMN phone VARCHAR(20)",
+            "ALTER TABLE users ALTER COLUMN college VARCHAR(150)",
+            "ALTER TABLE users ALTER COLUMN department VARCHAR(100)"
+        };
+        for (String sql : h2AlterStatements) {
+            try {
+                jdbcTemplate.execute(sql);
+            } catch (Exception ignored) {
+            }
+        }
+        String[] mysqlAlterStatements = {
+            "ALTER TABLE users MODIFY COLUMN roll_number VARCHAR(50)",
+            "ALTER TABLE users MODIFY COLUMN phone VARCHAR(20)",
+            "ALTER TABLE users MODIFY COLUMN college VARCHAR(150)",
+            "ALTER TABLE users MODIFY COLUMN department VARCHAR(100)"
+        };
+        for (String sql : mysqlAlterStatements) {
+            try {
+                jdbcTemplate.execute(sql);
+            } catch (Exception ignored) {
+            }
         }
     }
 }

@@ -54,24 +54,32 @@
                             <div class="col-6">
                                 <label class="form-label small fw-semibold">College</label>
                                 <input type="text" th:field="*{college}" class="form-control form-control-sm"
-                                       placeholder="College Name">
+                                       th:classappend="${#fields.hasErrors('college')} ? 'is-invalid'"
+                                       placeholder="College Name" maxlength="150">
+                                <div class="invalid-feedback" th:errors="*{college}"></div>
                             </div>
                             <div class="col-6">
                                 <label class="form-label small fw-semibold">Department</label>
                                 <input type="text" th:field="*{department}" class="form-control form-control-sm"
-                                       placeholder="Dept.">
+                                       th:classappend="${#fields.hasErrors('department')} ? 'is-invalid'"
+                                       placeholder="Dept." maxlength="100">
+                                <div class="invalid-feedback" th:errors="*{department}"></div>
                             </div>
                         </div>
                         <div class="row g-3 mb-4">
                             <div class="col-6">
                                 <label class="form-label small fw-semibold">Roll Number</label>
                                 <input type="text" th:field="*{rollNumber}" class="form-control form-control-sm"
-                                       placeholder="Roll No.">
+                                       th:classappend="${#fields.hasErrors('rollNumber')} ? 'is-invalid'"
+                                       placeholder="Roll No. (e.g. 310625243155)" maxlength="50">
+                                <div class="invalid-feedback" th:errors="*{rollNumber}"></div>
                             </div>
                             <div class="col-6">
                                 <label class="form-label small fw-semibold">Phone</label>
                                 <input type="tel" th:field="*{phone}" class="form-control form-control-sm"
-                                       placeholder="+91 xxxxxxxxxx">
+                                       th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'"
+                                       placeholder="+91 xxxxxxxxxx" maxlength="20">
+                                <div class="invalid-feedback" th:errors="*{phone}"></div>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 py-2">

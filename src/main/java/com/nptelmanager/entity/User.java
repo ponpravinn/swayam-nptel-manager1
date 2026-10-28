@@ -33,16 +33,20 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(length = 15)
+    @Size(max = 20, message = "Phone number cannot exceed 20 characters")
+    @Column(length = 20)
     private String phone;
 
-    @Column(length = 100)
+    @Size(max = 150, message = "College name cannot exceed 150 characters")
+    @Column(length = 150)
     private String college;
 
-    @Column(length = 50)
+    @Size(max = 100, message = "Department name cannot exceed 100 characters")
+    @Column(length = 100)
     private String department;
 
-    @Column(length = 10)
+    @Size(max = 50, message = "Roll number cannot exceed 50 characters")
+    @Column(length = 50)
     private String rollNumber;
 
     @Enumerated(EnumType.STRING)
@@ -54,6 +58,11 @@ public class User {
 
     @Column(nullable = false)
     private boolean emailNotificationsEnabled = true;
+
+    @Column(length = 100)
+    private String resetToken;
+
+    private LocalDateTime resetTokenExpiry;
 
     @CreationTimestamp
     @Column(updatable = false)

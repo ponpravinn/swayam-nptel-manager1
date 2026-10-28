@@ -7,7 +7,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "notifications", indexes = {
+    @Index(name = "idx_notif_dedup", columnList = "deduplicationKey")
+})
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Notification {
 
@@ -38,7 +40,7 @@ public class Notification {
     private Long relatedCourseId;
 
     // Deduplication key: type + entity ID + reminder period label
-    @Column(length = 200)
+    @Column(length = 200, unique = true)
     private String deduplicationKey;
 
     @CreationTimestamp

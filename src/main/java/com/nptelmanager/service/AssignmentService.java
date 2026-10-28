@@ -129,4 +129,14 @@ public class AssignmentService {
     public long countOverdue(User student) {
         return studentAssignmentRepository.countOverdueByStudentId(student.getId());
     }
+
+    @Transactional(readOnly = true)
+    public List<Assignment> getAllAdminAssignments() {
+        return assignmentRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public long getTotalCount() {
+        return assignmentRepository.count();
+    }
 }

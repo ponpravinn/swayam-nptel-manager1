@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: layout(
           pageTitle='Examinations',
@@ -54,7 +54,7 @@
                                  th:text="${#temporals.format(er.examination.examStartTime, 'hh:mm a')}">-</div>
                         </td>
                         <td class="small fw-semibold"
-                            th:text="${er.examination.registrationFee != null ? 'â‚¹' + er.examination.registrationFee : '-'}">-</td>
+                            th:text="${er.examination.registrationFee != null ? '&#8377;' + er.examination.registrationFee : '-'}">-</td>
 
                         <!-- Registration Status -->
                         <td>
@@ -134,7 +134,7 @@
                             </div>
                             <div class="col-6" th:if="${exam.registrationFee}">
                                 <div class="text-muted">Fee</div>
-                                <div class="fw-semibold" th:text="'â‚¹' + ${exam.registrationFee}">-</div>
+                                <div class="fw-semibold" th:text="'&#8377;' + ${exam.registrationFee}">-</div>
                             </div>
                             <div class="col-6" th:if="${exam.examDate}">
                                 <div class="text-muted">Exam Date</div>

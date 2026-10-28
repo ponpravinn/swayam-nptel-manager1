@@ -26,8 +26,27 @@ public class ReminderSchedulerService {
     private final ExaminationRegistrationRepository examRegRepo;
     private final NotificationService notificationService;
 
-    private static final int[] ASSIGNMENT_REMINDER_DAYS = {7, 3, 1, 0};
-    private static final int[] EXAM_REMINDER_DAYS = {7, 3, 1, 0};
+    @org.springframework.beans.factory.annotation.Value("${app.notification.reminder-days:7,3,1,0}")
+    private String assignmentReminderDaysConfig;
+
+    @org.springframework.beans.factory.annotation.Value("${app.notification.exam-reminder-days:7,3,1,0}")
+    private String examReminderDaysConfig;
+
+    private static final int[] DEFAULT_DAYS = {7, 3, 1, 0};
+
+    private int[] parseDays(String config) {
+        if (config == null || config.isBlank()) return DEFAULT_DAYS;
+        try {
+            return java.util.Arrays.stream(config.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .mapToInt(Integer::parseInt)
+                    .toArray();
+        } catch (Exception e) {
+            log.warn("Failed to parse reminder days config '{}', falling back to defaults", config, e);
+            return DEFAULT_DAYS;
+        }
+    }
 
     /**
      * Runs every hour to check for upcoming assignment deadlines.
@@ -65,7 +84,7 @@ public class ReminderSchedulerService {
             }
 
             // Upcoming reminders
-            for (int reminderDay : ASSIGNMENT_REMINDER_DAYS) {
+            for (int reminderDay : parseDays(assignmentReminderDaysConfig)) {
                 if (daysUntilDue == reminderDay) {
                     String dedupKey = "ASSIGN-" + student.getId() + "-" + assignment.getId() + "-D" + reminderDay;
                     String msg = buildAssignmentReminderMessage(assignment, reminderDay);
@@ -102,7 +121,7 @@ public class ReminderSchedulerService {
                 LocalDate closeDate = exam.getRegistrationCloseDate();
                 long daysToClose = ChronoUnit.DAYS.between(LocalDate.now(), closeDate);
 
-                for (int d : EXAM_REMINDER_DAYS) {
+                for (int d : parseDays(examReminderDaysConfig)) {
                     if (daysToClose == d) {
                         String dedupKey = "EXAM-REG-" + student.getId() + "-" + exam.getId() + "-D" + d;
                         String msg = d == 0
@@ -148,7 +167,7 @@ public class ReminderSchedulerService {
             // Exam date reminders
             if (exam.getExamDate() != null) {
                 long daysToExam = ChronoUnit.DAYS.between(LocalDate.now(), exam.getExamDate());
-                for (int d : EXAM_REMINDER_DAYS) {
+                for (int d : parseDays(examReminderDaysConfig)) {
                     if (daysToExam == d) {
                         String dedupKey = "EXAM-DATE-" + student.getId() + "-" + exam.getId() + "-D" + d;
                         String msg = d == 0

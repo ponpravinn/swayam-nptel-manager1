@@ -2,7 +2,7 @@
 title Push SWAYAM NPTEL Manager to GitHub
 echo ========================================================
 echo  Pushing SWAYAM NPTEL Assignment Manager to GitHub...
-echo  Target: https://github.com/ponpravinn/swayam-nptel-manager.git
+echo  Target: https://github.com/ponpravinn/swayam-nptel-manager1.git
 echo ========================================================
 echo.
 "C:\Users\Pon Prasad\.gemini\antigravity\scratch\git\cmd\git.exe" push -u origin main
@@ -13,8 +13,7 @@ if %errorlevel% equ 0 (
     echo ========================================================
 ) else (
     echo ========================================================
-    echo  Push failed. If prompted for password, use a GitHub 
-    echo  Personal Access Token (classic) with 'repo' scope.
+    echo  Push failed.
     echo ========================================================
 )
 echo.

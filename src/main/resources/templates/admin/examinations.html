@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: layout(
           pageTitle='Admin - Examinations',
@@ -35,7 +35,7 @@
                         <td class="small" th:text="${exam.examSession}">Session</td>
                         <td class="small" th:text="${exam.registrationCloseDate != null ? #temporals.format(exam.registrationCloseDate, 'dd MMM yyyy') : '-'}">-</td>
                         <td class="small" th:text="${exam.examDate != null ? #temporals.format(exam.examDate, 'dd MMM yyyy') : '-'}">-</td>
-                        <td class="small" th:text="${exam.registrationFee != null ? 'â‚¹' + exam.registrationFee : '-'}">-</td>
+                        <td class="small" th:text="${exam.registrationFee != null ? '&#8377;' + exam.registrationFee : '-'}">-</td>
                         <td class="pe-3">
                             <a th:href="@{/admin/examinations/edit/{id}(id=${exam.id})}"
                                class="btn btn-sm btn-outline-primary me-1">

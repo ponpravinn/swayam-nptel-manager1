@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: layout(
           pageTitle='Exam Details',
@@ -36,7 +36,7 @@
                     <div class="col-md-6">
                         <h6 class="text-muted small fw-semibold text-uppercase">Registration Fee</h6>
                         <p class="fw-bold fs-5 text-primary"
-                           th:text="${exam.registrationFee != null ? 'â‚¹' + exam.registrationFee : 'Not Specified'}">Fee</p>
+                           th:text="${exam.registrationFee != null ? '&#8377;' + exam.registrationFee : 'Not Specified'}">Fee</p>
                         <a th:if="${exam.registrationUrl}" th:href="${exam.registrationUrl}"
                            target="_blank" class="btn btn-primary btn-sm">
                             <i class="bi bi-box-arrow-up-right me-1"></i>Register on NPTEL
