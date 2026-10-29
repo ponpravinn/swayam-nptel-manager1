@@ -26,10 +26,12 @@ This document provides a factual, code-verified reference dossier for project pr
 | **d** | Demo credentials shown on login page or logged at start-up | **FIXED** | `src/main/resources/templates/auth/login.html`<br>`src/main/java/com/nptelmanager/config/DataInitializer.java:40-60` | Login template credential banner removed; all plaintext credential print statements in `DataInitializer.java` removed from startup logging. |
 | **e** | CSV import aborts the whole file when one row is invalid | **FIXED / NOT A BUG** | `src/main/java/com/nptelmanager/service/CsvImportService.java:54-84, 107-154` | Row ingestion is wrapped in individual `try-catch` blocks inside loop; invalid rows append error messages to `ImportResult` while valid rows are saved. |
 | **f** | Students who enrol late do not receive already-published assignments | **FIXED** | `src/main/java/com/nptelmanager/service/CourseService.java:61-71` | `enrollStudent()` queries all existing assignments for the course and creates corresponding `StudentAssignment` entries for the student upon enrollment. |
-| **g** | Dashboard Chart.js charts do not render (script order problem) | **NOT FIXED** | `src/main/resources/templates/dashboard/dashboard.html:297-364`<br>`src/main/resources/templates/fragments/layout.html:171,179` | Inline `<script>` calling `new Chart()` is placed in the content fragment, executing before `layout.html` loads `chart.umd.min.js` at line 179, resulting in `Chart is not defined`. |
-| **h** | Mis-encoded characters (`â‚¹`) in templates | **NOT FIXED** | `src/main/resources/templates/examinations/list.html:57,137`<br>`src/main/resources/templates/admin/exam-form.html:38`<br>`src/main/resources/templates/admin/examinations.html:38` | Mojibake string sequences (`â‚¹` / `,1`) exist in raw template files instead of proper UTF-8 Rupee symbol `₹` or HTML entity `&#8377;`. |
+| **g** | Dashboard Chart.js charts do not render (script order problem) | **FIXED** | `src/main/resources/templates/dashboard/dashboard.html:313-386` | Chart initialization wrapped in `document.addEventListener('DOMContentLoaded', ...)` and guarded with `typeof Chart !== 'undefined'` check; Chart.js library is loaded in layout before page-specific scripts. |
+| **h** | Mis-encoded characters (`â‚¹`) in templates | **FIXED** | `src/main/resources/templates/examinations/list.html:57,142`<br>`src/main/resources/templates/admin/exam-form.html:38`<br>`src/main/resources/templates/admin/examinations.html:38` | All templates now use HTML entity `&#8377;` (Indian Rupee sign) — confirmed in raw source files for all four affected locations. |
 | **i** | Reminder offsets hard-coded instead of read from properties | **NOT FIXED** | `src/main/java/com/nptelmanager/service/ReminderSchedulerService.java:29-30`<br>`src/main/resources/application.properties:39-40` | `ReminderSchedulerService` uses `private static final int[] ASSIGNMENT_REMINDER_DAYS = {7, 3, 1, 0};` instead of injecting `@Value("${app.notification.reminder-days}")`. |
 | **j** | No unique constraint on `deduplication_key` | **NOT FIXED** | `src/main/java/com/nptelmanager/entity/Notification.java:41-42` | Field declared as `@Column(length = 200) private String deduplicationKey;` without `unique = true` or a unique table constraint in `@Table`. |
+| **k** | New user registrations had no identity verification step | **FIXED** | `src/main/java/com/nptelmanager/service/UserService.java`<br>`src/main/java/com/nptelmanager/controller/AuthController.java`<br>`src/main/resources/templates/auth/verify-otp.html` | Registration now sends 6-digit OTPs to both Email and Phone (WhatsApp). Account `enabled` remains `false` until both OTPs are verified. New `/auth/verify-otp` page shows live OTP codes (dev mode auto-fill) and resend functionality. |
+| **l** | College name was a free-text field — data inconsistency risk | **FIXED** | `src/main/java/com/nptelmanager/service/TamilNaduCollegeService.java`<br>`src/main/resources/templates/auth/register.html`<br>`src/main/resources/templates/settings/settings.html` | College field replaced with a searchable dropdown listing 200+ Tamil Nadu institutions (IITs, NITs, Anna University affiliates, deemed universities, arts & science, medical, polytechnic, law colleges). "Other" option reveals a custom text field. |
 
 ### Additional Bug Fixes and Features Added Since Basic Version
 1. **Role-Based Access Enforcement**: Secured course creation, modification, deletion, and assignment creation endpoints strictly to `ADMIN` (`SecurityConfig.java:43-44`), preventing students from modifying the curriculum.
@@ -45,21 +47,25 @@ This document provides a factual, code-verified reference dossier for project pr
 8. **Admin Database Explorer & CSV Export**: Dedicated view (`/admin/database`, `AdminController.java`) allowing administrators and SPOCs to view all registered users with their academic profile details, search/filter live records, download full student rosters via CSV (`/admin/users/export-csv`), and access the H2 console directly.
 9. **SWAYAM NPTEL Course Sync Engine & Master Catalog**: Dynamic ingestion service (`NptelSyncService.java`) supporting real NPTEL courses (Cloud Computing, Java, Python for Data Science, IoT, DBMS, Machine Learning, Deep Learning, Cyber Security, Electric Vehicles, etc.). Automatically generates 12 weekly assignments with direct unit links (`/unit?unit=N`) and official TCS iON exam schedules (Morning & Afternoon shifts).
 10. **Official NPTEL Scoring & Certificate Predictor**: Implemented authentic IIT/IISc certification calculation rules (`NptelScoringService.java`): Continuous Assessment (25%, Best 8 of 12 / Best 6 of 8) + Proctored Exam (75%), validating mandatory passing criteria (Assignment $\ge 10/25$, Exam $\ge 30/75$) and simulating medal bands: Elite + Gold ($\ge 90\%$), Elite + Silver ($\ge 75\%$), Elite ($\ge 60\%$), and Pass ($\ge 40\%$).
+11. **Email & Phone OTP Verification on Registration**: New registrations generate two 6-digit OTPs — one dispatched to the user's email and one via WhatsApp to the registered phone number. The account is disabled until both OTPs are confirmed via `/auth/verify-otp`. Developer/demo mode renders OTPs in the UI with Auto-fill buttons. (`UserService`, `AuthController`, `verify-otp.html`)
+12. **Tamil Nadu Colleges Searchable Dropdown**: The college field on Registration and Settings pages has been replaced with a searchable dropdown listing 200+ Tamil Nadu institutions across IITs, NITs, Anna University affiliates, deemed universities, arts & science, medical, polytechnic, and law colleges. An "Other" option reveals a custom text field. (`TamilNaduCollegeService`, `register.html`, `settings.html`)
+13. **Admin OTP Verification Badges & CSV Export**: The Admin User Management page now displays Email Verified and Phone Verified badges per user. CSV student roster export includes `Email Verified` and `Phone Verified` boolean columns. (`AdminController`, `admin/users.html`)
 
 ---
 
 ## 3. FEATURES
 
 ### Student Features
-- **User Registration & Profile Setup**: Register account with college, degree, and notification preferences. (`AuthController`, `UserService`)
-- **Student Dashboard**: Real-time KPI cards for active courses, upcoming deadlines, overdue tasks, and completion rate. (`DashboardController`, `AssignmentService`)
+- **User Registration & Profile Setup**: Register account with college, degree, and notification preferences. College field is a searchable dropdown of 200+ Tamil Nadu institutions. (`AuthController`, `UserService`, `TamilNaduCollegeService`)
+- **Email & Phone OTP Verification**: After registration, a 6-digit OTP is sent to both the registered email and WhatsApp phone number. The account remains disabled until both OTPs are verified on the `/auth/verify-otp` page. Dev mode shows live OTP codes with an Auto-fill button for demonstration. (`UserService`, `AuthController`, `verify-otp.html`)
+- **Student Dashboard**: Real-time KPI cards for active courses, upcoming deadlines, overdue tasks, and completion rate. OTP verification status banner shown if either email or phone is unverified. (`DashboardController`, `AssignmentService`)
 - **Course Catalog & Self-Enrollment**: Browse available NPTEL courses, enroll in courses, or drop existing enrollments. (`CourseController`, `CourseService`)
 - **Assignment Tracker**: Filter assignments by course and status (Pending, In Progress, Completed, Overdue); toggle completion status. (`AssignmentController`, `AssignmentService`)
 - **NPTEL Examination Tracker**: Monitor registration open/close dates, exam dates, shifts, and update registration status (Registered, Fee Paid, Hall Ticket Downloaded). (`ExaminationController`, `ExaminationService`)
 - **Academic Calendar View**: Monthly, weekly, and daily FullCalendar view of all submission deadlines and examination dates. (`CalendarController`)
 - **Notification Inbox**: View automated alerts for deadlines, mark individual alerts as read, or mark all as read. (`NotificationController`, `NotificationService`)
 - **WhatsApp Deadline Alerts & Direct Share**: Receive automated assignment deadline and examination alerts directly on WhatsApp. Toggle preferences in Settings, trigger instant test notifications, and click one-click WhatsApp share buttons on assignments and examinations to open alerts directly in WhatsApp Web or mobile. (`WhatsAppService`, `NotificationController`, `NotificationService`)
-- **Account & Notification Settings**: Update personal details, contact number, and toggle both Email and WhatsApp notification preferences. (`SettingsController`, `UserService`)
+- **Account & Notification Settings**: Update personal details, contact number, college (searchable dropdown), and toggle both Email and WhatsApp notification preferences. Verified badges show Email/Phone OTP verification status. (`SettingsController`, `UserService`)
 
 ### Administrator Features
 - **Admin Dashboard**: Overview of system metrics including total users, courses, assignments, and system-wide enrollments. (`AdminController`, `CourseService`, `UserService`)
@@ -68,7 +74,7 @@ This document provides a factual, code-verified reference dossier for project pr
 - **Assignment Scheduling**: Define assignment titles, week numbers, and submission deadlines per course. (`AssignmentController`, `AssignmentService`)
 - **Examination Management**: Create exam slots, define shifts, specify registration fee amounts, and set registration deadline windows. (`AdminController`, `ExaminationService`)
 - **Bulk CSV Data Ingestion**: Batch upload courses and assignment schedules via CSV files with row-level error reporting. (`AdminController`, `CsvImportService`)
-- **User Account Oversight**: View all registered students and administrators, inspect enrollment counts, and manage roles. (`AdminController`, `UserService`)
+- **User Account Oversight**: View all registered students and administrators, inspect enrollment counts, view Email OTP and Phone OTP verification status badges per user, and export CSV with verified columns. (`AdminController`, `UserService`)
 
 ---
 
@@ -202,7 +208,15 @@ flowchart TD
    - `phone`: VARCHAR(20)
    - `college`: VARCHAR(150)
    - `degree`: VARCHAR(100)
+   - `enabled`: BOOLEAN (Default `true`; set `false` on registration until OTPs verified)
+   - `email_verified`: BOOLEAN (Default `false`; set `true` after email OTP confirmed)
+   - `phone_verified`: BOOLEAN (Default `false`; set `true` after phone OTP confirmed)
+   - `email_otp`: VARCHAR(10) (Stores 6-digit email OTP)
+   - `email_otp_expiry`: TIMESTAMP (OTP valid for 10 minutes)
+   - `phone_otp`: VARCHAR(10) (Stores 6-digit phone/WhatsApp OTP)
+   - `phone_otp_expiry`: TIMESTAMP (OTP valid for 10 minutes)
    - `email_notifications`: BOOLEAN (Default `true`)
+   - `whatsapp_notifications_enabled`: BOOLEAN (Default `true`)
    - `created_at`: TIMESTAMP (Not Null)
 
 2. **`courses`**

@@ -24,12 +24,28 @@
                                    placeholder="Full Name" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Email (read-only)</label>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-semibold mb-0">Email Address</label>
+                                <span th:if="${student.emailVerified}" class="badge bg-success-subtle text-success border border-success-subtle py-0 px-2" style="font-size:0.68rem;">
+                                    <i class="bi bi-patch-check-fill me-1"></i>Verified
+                                </span>
+                                <a th:unless="${student.emailVerified}" th:href="@{/auth/verify-otp(email=${student.email})}" class="badge bg-warning-subtle text-warning border border-warning-subtle text-decoration-none py-0 px-2" style="font-size:0.68rem;">
+                                    <i class="bi bi-shield-exclamation me-1"></i>Verify OTP Now
+                                </a>
+                            </div>
                             <input type="email" th:value="${student.email}" class="form-control"
                                    readonly disabled>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Phone</label>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-semibold mb-0">Phone / WhatsApp</label>
+                                <span th:if="${student.phoneVerified}" class="badge bg-success-subtle text-success border border-success-subtle py-0 px-2" style="font-size:0.68rem;">
+                                    <i class="bi bi-patch-check-fill me-1"></i>Verified
+                                </span>
+                                <a th:unless="${student.phoneVerified}" th:href="@{/auth/verify-otp(email=${student.email})}" class="badge bg-warning-subtle text-warning border border-warning-subtle text-decoration-none py-0 px-2" style="font-size:0.68rem;">
+                                    <i class="bi bi-shield-exclamation me-1"></i>Verify OTP Now
+                                </a>
+                            </div>
                             <input type="tel" th:field="*{phone}" class="form-control" placeholder="+91 xxxxxxxxxx">
                         </div>
                         <div class="col-md-6">
@@ -37,8 +53,37 @@
                             <input type="text" th:field="*{rollNumber}" class="form-control" placeholder="Roll No.">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold">College</label>
-                            <input type="text" th:field="*{college}" class="form-control" placeholder="College Name">
+                            <label class="form-label small fw-semibold">College / Institution</label>
+
+                            <!-- Hidden field for actual value -->
+                            <input type="hidden" th:field="*{college}" id="settingsCollegeHidden">
+
+                            <!-- Search input -->
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-search text-muted" style="font-size:0.8rem;"></i></span>
+                                    <input type="text" id="settingsCollegeSearch" class="form-control form-control-sm"
+                                           placeholder="Search Tamil Nadu college..."
+                                           autocomplete="off"
+                                           th:value="${student.college}"
+                                           oninput="filterSettingsColleges(this.value)"
+                                           onfocus="showSettingsDropdown()">
+                                </div>
+                                <div id="settingsCollegeDropdown" class="list-group position-absolute w-100 shadow d-none border" style="max-height:200px;overflow-y:auto;z-index:1050;">
+                                    <div th:each="c : ${colleges}"
+                                         class="settings-college-option list-group-item list-group-item-action py-1"
+                                         style="font-size:0.82rem;cursor:pointer;"
+                                         th:text="${c}"
+                                         th:attr="data-value=${c}"
+                                         onclick="selectSettingsCollege(this)"></div>
+                                </div>
+                            </div>
+                            <!-- Custom entry -->
+                            <div id="settingsCustomWrapper" class="mt-1 d-none">
+                                <input type="text" id="settingsCustomCollege" class="form-control form-control-sm"
+                                       placeholder="Enter your institution name" maxlength="150"
+                                       oninput="document.getElementById('settingsCollegeHidden').value = this.value">
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Department</label>
@@ -169,6 +214,52 @@
         </div>
     </div>
 </div>
+
+<script>
+    // ── Settings page college picker ──────────────────────────────
+    const sDropdown  = document.getElementById('settingsCollegeDropdown');
+    const sSearch    = document.getElementById('settingsCollegeSearch');
+    const sHidden    = document.getElementById('settingsCollegeHidden');
+    const sCustomWr  = document.getElementById('settingsCustomWrapper');
+    const sCustomIn  = document.getElementById('settingsCustomCollege');
+    const sOptions   = Array.from(sDropdown ? sDropdown.querySelectorAll('.settings-college-option') : []);
+
+    function showSettingsDropdown() {
+        if (sDropdown) sDropdown.classList.remove('d-none');
+        filterSettingsColleges(sSearch ? sSearch.value : '');
+    }
+
+    function filterSettingsColleges(query) {
+        if (!sDropdown) return;
+        const q = query.trim().toLowerCase();
+        let any = false;
+        sOptions.forEach(opt => {
+            const match = !q || opt.textContent.toLowerCase().includes(q);
+            opt.style.display = match ? '' : 'none';
+            if (match) any = true;
+        });
+        sDropdown.classList.toggle('d-none', !any);
+    }
+
+    function selectSettingsCollege(el) {
+        const val = el.getAttribute('data-value');
+        if (sSearch)  sSearch.value  = val;
+        if (sHidden)  sHidden.value  = val;
+        if (sDropdown) sDropdown.classList.add('d-none');
+        const isOther = val === 'Other (Type your institution name)';
+        if (sCustomWr) sCustomWr.classList.toggle('d-none', !isOther);
+        if (isOther) { if (sHidden) sHidden.value = ''; if (sCustomIn) sCustomIn.focus(); }
+    }
+
+    document.addEventListener('click', function(e) {
+        if (sDropdown && sSearch && !sSearch.contains(e.target) && !sDropdown.contains(e.target)) {
+            sDropdown.classList.add('d-none');
+            if (sHidden && !sHidden.value && sSearch.value.trim()) {
+                sHidden.value = sSearch.value.trim();
+            }
+        }
+    });
+</script>
 </th:block>
 </html>
 </html>

@@ -23,6 +23,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JavaMailSender mailSender;
+    private final WhatsAppService whatsAppService;
 
     @Value("${spring.mail.enabled:false}")
     private boolean emailEnabled;
@@ -47,10 +48,22 @@ public class UserService {
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(User.Role.STUDENT);
-        user.setEnabled(true);
+        user.setEnabled(false); // Disabled until OTP verification confirms identity
+        user.setEmailVerified(false);
+        user.setPhoneVerified(false);
         user.setEmailNotificationsEnabled(true);
         user.setWhatsappNotificationsEnabled(true);
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+
+        // Generate and dispatch OTPs for Email and Phone
+        generateAndSendEmailOtp(saved);
+        if (saved.getPhone() != null && !saved.getPhone().isBlank()) {
+            generateAndSendPhoneOtp(saved);
+        } else {
+            saved.setPhoneVerified(true);
+            userRepository.save(saved);
+        }
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -152,5 +165,159 @@ public class UserService {
             .orElseThrow(() -> new IllegalArgumentException("No account registered with email: " + email));
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+    }
+
+    public String generateAndSendEmailOtp(User user) {
+        int code = 100000 + new java.security.SecureRandom().nextInt(900000);
+        String otp = String.valueOf(code);
+        user.setEmailOtp(otp);
+        user.setEmailOtpExpiry(LocalDateTime.now().plusMinutes(15));
+        userRepository.save(user);
+
+        log.info("\n" +
+                 "============================================================\n" +
+                 "✉️ [EMAIL OTP GENERATED] SWAYAM NPTEL Assignment Manager\n" +
+                 "------------------------------------------------------------\n" +
+                 "Recipient Email: {}\n" +
+                 "Verification OTP: {}\n" +
+                 "Valid For       : 15 minutes\n" +
+                 "============================================================",
+                 user.getEmail(), otp);
+
+        if (emailEnabled && mailSender != null) {
+            try {
+                SimpleMailMessage msg = new SimpleMailMessage();
+                msg.setFrom(mailFrom != null && !mailFrom.isBlank() ? mailFrom : "noreply@nptelmanager.com");
+                msg.setTo(user.getEmail());
+                msg.setSubject("[SWAYAM NPTEL Manager] Email Verification OTP: " + otp);
+                msg.setText("Hello " + user.getFullName() + ",\n\n"
+                    + "Welcome to SWAYAM NPTEL Assignment Manager!\n\n"
+                    + "Your One-Time Password (OTP) to verify your email address is:\n\n"
+                    + "   " + otp + "\n\n"
+                    + "This OTP is valid for 15 minutes. Enter this code on the verification screen to activate your account.\n\n"
+                    + "Regards,\nSWAYAM NPTEL Assignment Manager Team");
+                mailSender.send(msg);
+                log.info("Email verification OTP dispatched to {}", user.getEmail());
+            } catch (Exception e) {
+                log.warn("Could not dispatch email via SMTP (using dev/console fallback): {}", e.getMessage());
+            }
+        }
+        return otp;
+    }
+
+    public String generateAndSendPhoneOtp(User user) {
+        if (user.getPhone() == null || user.getPhone().isBlank()) {
+            return null;
+        }
+        int code = 100000 + new java.security.SecureRandom().nextInt(900000);
+        String otp = String.valueOf(code);
+        user.setPhoneOtp(otp);
+        user.setPhoneOtpExpiry(LocalDateTime.now().plusMinutes(15));
+        userRepository.save(user);
+
+        log.info("\n" +
+                 "============================================================\n" +
+                 "📱 [PHONE OTP GENERATED] SWAYAM NPTEL Assignment Manager\n" +
+                 "------------------------------------------------------------\n" +
+                 "Recipient Phone: {}\n" +
+                 "Verification OTP: {}\n" +
+                 "Valid For       : 15 minutes\n" +
+                 "============================================================",
+                 user.getPhone(), otp);
+
+        String message = "Your SWAYAM NPTEL Assignment Manager Phone Verification OTP is: " + otp
+                + ". Valid for 15 minutes. Enter this code to verify your mobile number.";
+        try {
+            whatsAppService.dispatch(whatsAppService.cleanPhoneNumber(user.getPhone()),
+                    message, "Phone Verification OTP", user.getFullName());
+        } catch (Exception e) {
+            log.warn("Could not dispatch phone OTP via WhatsApp service (using console fallback): {}", e.getMessage());
+        }
+        return otp;
+    }
+
+    public boolean verifyEmailOtp(String email, String otp) {
+        String cleanEmail = email != null ? email.trim().toLowerCase() : "";
+        User user = userRepository.findByEmailIgnoreCase(cleanEmail)
+            .orElseThrow(() -> new IllegalArgumentException("No account registered with email: " + email));
+
+        if (user.isEmailVerified()) {
+            return true;
+        }
+
+        if (user.getEmailOtp() == null || user.getEmailOtpExpiry() == null) {
+            throw new IllegalArgumentException("No email verification OTP was generated. Please click 'Resend OTP'.");
+        }
+
+        if (LocalDateTime.now().isAfter(user.getEmailOtpExpiry())) {
+            throw new IllegalArgumentException("Email OTP has expired. Please request a new one.");
+        }
+
+        if (!user.getEmailOtp().equals(otp.trim())) {
+            throw new IllegalArgumentException("Invalid Email OTP code. Please check and try again.");
+        }
+
+        user.setEmailVerified(true);
+        user.setEmailOtp(null);
+        user.setEmailOtpExpiry(null);
+
+        // If phone is also verified (or no phone was provided), activate user account
+        if (user.isPhoneVerified() || user.getPhone() == null || user.getPhone().isBlank()) {
+            user.setEnabled(true);
+        }
+        userRepository.save(user);
+        log.info("Email verified successfully for user {}", cleanEmail);
+        return true;
+    }
+
+    public boolean verifyPhoneOtp(String email, String otp) {
+        String cleanEmail = email != null ? email.trim().toLowerCase() : "";
+        User user = userRepository.findByEmailIgnoreCase(cleanEmail)
+            .orElseThrow(() -> new IllegalArgumentException("No account registered with email: " + email));
+
+        if (user.isPhoneVerified()) {
+            return true;
+        }
+
+        if (user.getPhoneOtp() == null || user.getPhoneOtpExpiry() == null) {
+            throw new IllegalArgumentException("No phone verification OTP was generated. Please click 'Resend OTP'.");
+        }
+
+        if (LocalDateTime.now().isAfter(user.getPhoneOtpExpiry())) {
+            throw new IllegalArgumentException("Phone OTP has expired. Please request a new one.");
+        }
+
+        if (!user.getPhoneOtp().equals(otp.trim())) {
+            throw new IllegalArgumentException("Invalid Phone OTP code. Please check and try again.");
+        }
+
+        user.setPhoneVerified(true);
+        user.setPhoneOtp(null);
+        user.setPhoneOtpExpiry(null);
+
+        // If email is also verified, activate user account
+        if (user.isEmailVerified()) {
+            user.setEnabled(true);
+        }
+        userRepository.save(user);
+        log.info("Phone number verified successfully for user {}", cleanEmail);
+        return true;
+    }
+
+    public void resendOtp(String email, String type) {
+        String cleanEmail = email != null ? email.trim().toLowerCase() : "";
+        User user = userRepository.findByEmailIgnoreCase(cleanEmail)
+            .orElseThrow(() -> new IllegalArgumentException("No account registered with email: " + email));
+
+        if ("email".equalsIgnoreCase(type)) {
+            generateAndSendEmailOtp(user);
+        } else if ("phone".equalsIgnoreCase(type)) {
+            if (user.getPhone() == null || user.getPhone().isBlank()) {
+                throw new IllegalArgumentException("No phone number registered for this account.");
+            }
+            generateAndSendPhoneOtp(user);
+        } else {
+            throw new IllegalArgumentException("Unknown OTP type: " + type);
+        }
     }
 }

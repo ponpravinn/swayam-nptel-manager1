@@ -1,6 +1,7 @@
 package com.nptelmanager.controller;
 
 import com.nptelmanager.entity.User;
+import com.nptelmanager.service.TamilNaduCollegeService;
 import com.nptelmanager.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,11 +17,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class SettingsController {
 
     private final UserService userService;
+    private final TamilNaduCollegeService collegeService;
 
     @GetMapping
     public String settingsPage(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         User student = userService.getByEmail(userDetails.getUsername());
         model.addAttribute("student", student);
+        model.addAttribute("colleges", collegeService.getAllColleges());
         return "settings/settings";
     }
 

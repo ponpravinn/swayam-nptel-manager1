@@ -102,6 +102,47 @@ class NptelManagerApplicationTests {
         assertThat(saved.getPassword()).startsWith("$2a$"); // BCrypt prefix
     }
 
+    @Test
+    @Order(5)
+    void testEmailAndPhoneOtpVerification_Success() {
+        User user = User.builder()
+            .fullName("OTP Student")
+            .email("otpstudent@example.com")
+            .phone("+919876543210")
+            .password("Pass@123")
+            .build();
+
+        User saved = userService.register(user);
+
+        assertThat(saved.isEmailVerified()).isFalse();
+        assertThat(saved.isPhoneVerified()).isFalse();
+        assertThat(saved.isEnabled()).isFalse();
+        assertThat(saved.getEmailOtp()).isNotNull();
+        assertThat(saved.getPhoneOtp()).isNotNull();
+
+        // 1. Verify invalid OTP throws exception
+        assertThatThrownBy(() -> userService.verifyEmailOtp("otpstudent@example.com", "000000"))
+            .isInstanceOf(IllegalArgumentException.class);
+
+        // 2. Verify valid email OTP
+        boolean emailVerified = userService.verifyEmailOtp("otpstudent@example.com", saved.getEmailOtp());
+        assertThat(emailVerified).isTrue();
+
+        User afterEmail = userService.getByEmail("otpstudent@example.com");
+        assertThat(afterEmail.isEmailVerified()).isTrue();
+        assertThat(afterEmail.isPhoneVerified()).isFalse();
+        assertThat(afterEmail.isEnabled()).isFalse(); // Phone still pending
+
+        // 3. Verify valid phone OTP
+        boolean phoneVerified = userService.verifyPhoneOtp("otpstudent@example.com", saved.getPhoneOtp());
+        assertThat(phoneVerified).isTrue();
+
+        User afterBoth = userService.getByEmail("otpstudent@example.com");
+        assertThat(afterBoth.isEmailVerified()).isTrue();
+        assertThat(afterBoth.isPhoneVerified()).isTrue();
+        assertThat(afterBoth.isEnabled()).isTrue(); // Now fully activated!
+    }
+
     // =========================================================
     // 3. Course Creation Tests
     // =========================================================

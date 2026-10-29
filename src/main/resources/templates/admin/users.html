@@ -194,6 +194,14 @@
                                 <div>
                                     <div class="fw-semibold small user-name" th:text="${u.fullName}">Name</div>
                                     <div class="text-muted user-email" style="font-size:0.75rem;" th:text="${u.email}">email</div>
+                                    <div class="mt-1">
+                                        <span th:if="${u.emailVerified}" class="badge bg-success-subtle text-success border border-success-subtle py-0 px-1" style="font-size:0.62rem;">
+                                            <i class="bi bi-check-circle-fill"></i> Email Verified
+                                        </span>
+                                        <span th:unless="${u.emailVerified}" class="badge bg-warning-subtle text-warning border border-warning-subtle py-0 px-1" style="font-size:0.62rem;">
+                                            <i class="bi bi-clock"></i> Email Unverified
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </td>
@@ -208,6 +216,14 @@
                                    title="Chat with Student on WhatsApp">
                                     <i class="bi bi-whatsapp"></i> Chat
                                 </a>
+                            </div>
+                            <div th:if="${u.phone != null and !u.phone.isBlank()}" class="mt-1">
+                                <span th:if="${u.phoneVerified}" class="badge bg-success-subtle text-success border border-success-subtle py-0 px-1" style="font-size:0.62rem;">
+                                    <i class="bi bi-check-circle-fill"></i> Phone Verified
+                                </span>
+                                <span th:unless="${u.phoneVerified}" class="badge bg-warning-subtle text-warning border border-warning-subtle py-0 px-1" style="font-size:0.62rem;">
+                                    <i class="bi bi-clock"></i> Phone Unverified
+                                </span>
                             </div>
                         </td>
                         <td>

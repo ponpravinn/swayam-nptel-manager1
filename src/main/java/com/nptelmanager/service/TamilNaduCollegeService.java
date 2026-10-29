@@ -1,0 +1,241 @@
+package com.nptelmanager.service;
+
+import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * Provides a comprehensive, categorized list of Tamil Nadu colleges and universities
+ * for use in registration and profile forms.
+ */
+@Service
+public class TamilNaduCollegeService {
+
+    public List<String> getAllColleges() {
+        return Arrays.asList(
+            // ── IITs & NITs ──────────────────────────────────────────────────
+            "Indian Institute of Technology Madras (IIT Madras), Chennai",
+            "National Institute of Technology Tiruchirappalli (NIT Trichy)",
+            "National Institute of Technology Silchar (NIT Silchar)",
+
+            // ── Central Universities ──────────────────────────────────────────
+            "University of Madras, Chennai",
+            "Bharathiar University, Coimbatore",
+            "Bharathidasan University, Tiruchirappalli",
+            "Annamalai University, Chidambaram",
+            "Tamil Nadu Open University (TNOU), Chennai",
+            "Tamil Nadu Physical Education and Sports University (TNPESU), Chennai",
+            "Tamil Nadu Teachers Education University (TNTEU), Chennai",
+            "Thiruvalluvar University, Vellore",
+            "Periyar University, Salem",
+            "Mother Teresa Women's University, Kodaikanal",
+            "Manonmaniam Sundaranar University, Tirunelveli",
+            "Alagappa University, Karaikudi",
+            "Madurai Kamaraj University, Madurai",
+            "The Gandhigram Rural Institute, Dindigul",
+            "Pondicherry University, Puducherry",
+
+            // ── Deemed Universities ──────────────────────────────────────────
+            "Anna University, Chennai",
+            "SRM Institute of Science and Technology (SRMIST), Chennai",
+            "Vellore Institute of Technology (VIT), Vellore",
+            "Amrita Vishwa Vidyapeetham, Coimbatore",
+            "SASTRA Deemed University, Thanjavur",
+            "Saveetha Institute of Medical and Technical Sciences, Chennai",
+            "Vel Tech Rangarajan Dr Sagunthala R&D Institute of Science and Technology, Chennai",
+            "Kalasalingam Academy of Research and Education, Virudhunagar",
+            "Sri Ramachandra Institute of Higher Education and Research, Chennai",
+            "Chettinad Academy of Research and Education (CARE), Kelambakkam",
+            "Sathyabama Institute of Science and Technology, Chennai",
+            "Vinayaka Mission's Research Foundation, Salem",
+            "Hindustan Institute of Technology and Science (HITS), Chennai",
+            "Karpagam Academy of Higher Education, Coimbatore",
+            "Meenakshi Academy of Higher Education and Research (MAHER), Chennai",
+            "Periyar Maniammai Institute of Science & Technology, Thanjavur",
+            "Sri Chandrasekharendra Saraswathi Viswa Mahavidyalaya (SCSVMV), Kancheepuram",
+            "Sri Sai Ram Institute of Technology, Chennai",
+            "Prathyusha Engineering College (Affiliated to Anna University), Tiruvallur",
+            "Ponnaiyah Ramajayam Institute of Science and Technology (PRIST), Thanjavur",
+            "Dr. M.G.R. Educational and Research Institute, Chennai",
+            "Sri Balaji Technical Campus, Puducherry",
+            "Noorul Islam Centre for Higher Education (NICHE), Kumaracoil",
+            "Nehru Institute of Engineering and Technology, Coimbatore",
+            "Erode Sengunthar Engineering College, Erode",
+
+            // ── Autonomous Engineering Colleges (Chennai) ────────────────────
+            "College of Engineering, Guindy (CEG), Anna University, Chennai",
+            "MIT Campus, Anna University, Chennai",
+            "Madras Institute of Technology (MIT), Chrompet, Chennai",
+            "Easwari Engineering College, Chennai",
+            "Jerusalem College of Engineering, Chennai",
+            "Jeppiaar Engineering College, Chennai",
+            "Valliammai Engineering College, Kattankulathur",
+            "Sri Venkateswara College of Engineering (SVCE), Sriperumbudur",
+            "St. Joseph's College of Engineering, Chennai",
+            "SSN College of Engineering, Kalavakkam, Chennai",
+            "Velammal Engineering College, Chennai",
+            "R.M.K. Engineering College, Kavaraipettai",
+            "R.M.D. Engineering College, Kavaraipettai",
+            "Dr. Ambedkar Institute of Technology, Chennai",
+            "B.S. Abdur Rahman Crescent Institute of Science and Technology, Chennai",
+            "Panimalar Engineering College, Chennai",
+            "Agni College of Technology, Chennai",
+            "Chennai Institute of Technology, Chennai",
+            "Rajalakshmi Engineering College, Chennai",
+            "Prathyusha Engineering College, Tiruvallur",
+            "Loyola-ICAM College of Engineering and Technology (LICET), Chennai",
+            "Sathyabama College of Engineering, Chennai",
+            "Aarupadai Veedu Institute of Technology, Chennai",
+            "Meenakshi Sundararajan Engineering College, Chennai",
+            "C. Abdul Hakeem College of Engineering and Technology (CAHCET), Vellore",
+            "Venkateswara College of Engineering, Pondicherry",
+
+            // ── Engineering Colleges (Coimbatore Region) ─────────────────────
+            "PSG College of Technology, Coimbatore",
+            "Coimbatore Institute of Technology (CIT), Coimbatore",
+            "Dr. N.G.P. Institute of Technology, Coimbatore",
+            "KPR Institute of Engineering and Technology, Coimbatore",
+            "Sri Krishna College of Technology, Coimbatore",
+            "SNS College of Technology, Coimbatore",
+            "Kumaraguru College of Technology (KCT), Coimbatore",
+            "Sri Eshwar College of Engineering, Coimbatore",
+            "KGISL Institute of Technology, Coimbatore",
+            "RVS College of Engineering and Technology, Coimbatore",
+            "Rathinam College of Arts and Science, Coimbatore",
+            "Hindusthan College of Engineering and Technology, Coimbatore",
+            "Nandha Engineering College, Erode",
+            "Bannari Amman Institute of Technology (BIT), Sathyamangalam",
+            "Sri Ranganathar Institute of Engineering and Technology, Coimbatore",
+
+            // ── Engineering Colleges (Trichy / Thanjavur Region) ─────────────
+            "Thiagarajar College of Engineering (TCE), Madurai",
+            "National Engineering College (NEC), Kovilpatti",
+            "K. Ramakrishnan College of Engineering, Tiruchirappalli",
+            "M.A.M. College of Engineering, Tiruchirappalli",
+            "Govt. College of Technology, Coimbatore",
+            "National College of Engineering, Tirunelveli",
+            "St. Xavier's Catholic College of Engineering, Nagercoil",
+            "RVS Technical Campus, Coimbatore",
+            "Dr. Sivanthi Aditanar College of Engineering (DACE), Tiruchendur",
+            "Infant Jesus College of Engineering, Tirunelveli",
+            "Kamaraj College of Engineering and Technology (KCE), Virudhunagar",
+            "Sethu Institute of Technology (SIT), Virudhunagar",
+            "Vel Tech Multi Tech Dr. Rangarajan Dr. Sakunthala Engineering College, Chennai",
+            "P.S.R. Engineering College, Sivakasi",
+
+            // ── Engineering Colleges (Salem / Dharmapuri Region) ─────────────
+            "Sona College of Technology, Salem",
+            "K.S.R. College of Engineering, Tiruchengode",
+            "Kongu Engineering College, Erode",
+            "Sri Ramakrishna Engineering College, Coimbatore",
+            "V.S.B. Engineering College, Karur",
+            "Excel College of Engineering and Technology, Namakkal",
+
+            // ── Engineering Colleges (Vellore Region) ────────────────────────
+            "Sri Venkateswara College of Engineering and Technology, Chittoor",
+            "Adhiyamaan College of Engineering, Hosur",
+            "Priyadarshini Engineering College, Vellore",
+            "Arunai Engineering College, Tiruvannamalai",
+            "Achariya Arts and Science College, Puducherry",
+
+            // ── Engineering Colleges (Madurai / Southern TN) ─────────────────
+            "Arulmigu Meenakshi Amman College of Engineering, Thiruvannamalai",
+            "Government College of Engineering, Tirunelveli",
+            "Government College of Engineering, Salem",
+            "Government College of Engineering, Bargur",
+            "Mepco Schlenk Engineering College, Sivakasi",
+            "A.C.S. College of Engineering, Madurai",
+            "Fatima Michael College of Engineering and Technology, Madurai",
+            "Pandian Saraswathi Yadav Engineering College, Sivaganga",
+            "PSNA College of Engineering and Technology, Dindigul",
+            "Mailam Engineering College, Villupuram",
+            "V.R.S. College of Engineering and Technology, Villupuram",
+            "Parisutham Institute of Technology and Science, Thanjavur",
+
+            // ── Arts & Science Colleges ─────────────────────────────────────
+            "Presidency College, Chennai",
+            "Loyola College, Chennai",
+            "Madras Christian College (MCC), Chennai",
+            "Queen Mary's College, Chennai",
+            "Stella Maris College, Chennai",
+            "Women's Christian College, Chennai",
+            "Ethiraj College for Women, Chennai",
+            "Womens' College of Commerce, Trichy",
+            "Bishop Heber College, Tiruchirappalli",
+            "Jamal Mohamed College, Tiruchirappalli",
+            "St. Joseph's College (Autonomous), Tiruchirappalli",
+            "Government Arts College, Coimbatore",
+            "PSG Arts and Science College, Coimbatore",
+            "Kongu Arts and Science College, Erode",
+            "Thiagarajar College, Madurai",
+            "Madura College, Madurai",
+            "The American College, Madurai",
+            "Lady Doak College, Madurai",
+            "Government Arts College, Kumbakonam",
+            "St. Xavier's College, Palayamkottai",
+            "Sarah Tucker College, Tirunelveli",
+            "V.O. Chidambaram College, Tuticorin",
+            "Scott Christian College, Nagercoil",
+            "Government Arts College, Salem",
+            "Salem Sowdeswari College, Salem",
+            "Periyar EVR College, Tiruchirappalli",
+            "Cauvery College for Women, Tiruchirappalli",
+            "Holy Cross College, Tiruchirappalli",
+            "National College, Tiruchirappalli",
+            "Bishop Appasamy College of Arts and Science, Coimbatore",
+            "NMSSVN College, Madurai",
+            "RKM Vivekananda College, Chennai",
+            "Vivekananda Arts and Science College for Women, Chennai",
+
+            // ── Medical Colleges ─────────────────────────────────────────────
+            "Madras Medical College (MMC), Chennai",
+            "Stanley Medical College, Chennai",
+            "Kilpauk Medical College, Chennai",
+            "Sri Ramachandra Medical College, Chennai",
+            "Saveetha Medical College, Chennai",
+            "Sri Sai Ram Medical College, Chennai",
+            "Sri Muthukumaran Medical College, Chennai",
+            "Government Medical College, Omandurar, Chennai",
+            "Government Vellore Medical College, Vellore",
+            "SRM Medical College, Kancheepuram",
+            "Vinayaka Mission's Medical College, Salem",
+            "PSG Institute of Medical Sciences and Research, Coimbatore",
+            "Coimbatore Medical College (CMC), Coimbatore",
+            "Government Coimbatore Medical College, Coimbatore",
+            "Government Tirunelveli Medical College, Tirunelveli",
+            "Tirunelveli Medical College, Tirunelveli",
+            "Government Madurai Medical College, Madurai",
+            "Meenakshi Medical College, Enathur",
+            "Government Thanjavur Medical College (TMC), Thanjavur",
+            "Annapoorna Medical College and Hospital, Salem",
+            "KAP Viswanatham Government Medical College, Tiruchirappalli",
+            "Government Rajaji Hospital Medical College, Madurai",
+
+            // ── Law Colleges ─────────────────────────────────────────────────
+            "Tamil Nadu National Law School (TNNLS), Tiruchirappalli",
+            "School of Law, SASTRA, Thanjavur",
+            "Government Law College, Chennai",
+            "School of Excellence in Law (SOEL), Chennai",
+            "Sathyabama School of Law, Chennai",
+
+            // ── Polytechnic Colleges ─────────────────────────────────────────
+            "Government Polytechnic College, Chennai",
+            "Annamalai Polytechnic College, Chettinad",
+            "Rajagopal Polytechnic College, Gudiyattam",
+
+            // ── Other Institutions ────────────────────────────────────────────
+            "Indian Maritime University (IMU), Chennai",
+            "Tamil Nadu Veterinary and Animal Sciences University (TANUVAS), Chennai",
+            "Tamil Nadu Agricultural University (TNAU), Coimbatore",
+            "Fisheries College and Research Institute, Tuticorin",
+            "Forest College and Research Institute, Mettupalayam",
+            "Horticultural College and Research Institute, Periyakulam",
+            "Institute of Road and Transport Technology (IRTT), Erode",
+            "Government College of Fine Arts, Chennai",
+            "Government College of Architecture, Chennai",
+            "School of Architecture, Anna University, Chennai",
+            "Other (Type your institution name)"
+        );
+    }
+}

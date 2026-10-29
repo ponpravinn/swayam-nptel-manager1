@@ -67,9 +67,13 @@
                     </form>
 
                     <hr class="my-3">
-                    <p class="text-center small mb-0">
+                    <p class="text-center small mb-1">
                         Don't have an account?
                         <a th:href="@{/auth/register}" class="text-primary fw-semibold">Register here</a>
+                    </p>
+                    <p class="text-center small mb-0" style="font-size:0.75rem;">
+                        <span class="text-muted">Pending verification?</span>
+                        <a th:href="@{/auth/verify-otp}" class="text-primary text-decoration-none fw-semibold">Verify Email &amp; Phone OTP</a>
                     </p>
                 </div>
             </div>

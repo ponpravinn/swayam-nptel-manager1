@@ -49,9 +49,21 @@ public class WhatsAppService {
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
 
-    private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
-            .build();
+    private HttpClient httpClient;
+
+    private synchronized HttpClient getHttpClient() {
+        if (httpClient == null) {
+            try {
+                httpClient = HttpClient.newBuilder()
+                        .connectTimeout(Duration.ofSeconds(10))
+                        .build();
+            } catch (Exception e) {
+                log.warn("Could not initialize HttpClient (network/sandbox mode): {}", e.getMessage());
+                return null;
+            }
+        }
+        return httpClient;
+    }
 
     /**
      * Send notification to student's WhatsApp number.
@@ -107,6 +119,11 @@ public class WhatsAppService {
      * Send message via CallMeBot Free WhatsApp API
      */
     private boolean sendViaCallMeBot(String cleanPhone, String text) {
+        HttpClient client = getHttpClient();
+        if (client == null) {
+            log.warn("HttpClient not initialized, using simulated dispatch fallback");
+            return false;
+        }
         try {
             String encodedText = URLEncoder.encode(text, StandardCharsets.UTF_8);
             String url = String.format("https://api.callmebot.com/whatsapp.php?phone=+%s&text=%s&apikey=%s",
@@ -118,7 +135,7 @@ public class WhatsAppService {
                     .GET()
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
                 log.info("✅ WhatsApp alert successfully delivered to +{} via CallMeBot", cleanPhone);
                 return true;
@@ -136,6 +153,11 @@ public class WhatsAppService {
      * Send message via Twilio WhatsApp API
      */
     private boolean sendViaTwilio(String cleanPhone, String text) {
+        HttpClient client = getHttpClient();
+        if (client == null) {
+            log.warn("HttpClient not initialized, using simulated dispatch fallback");
+            return false;
+        }
         try {
             String url = String.format("https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json", twilioAccountSid.trim());
             String toWhatsApp = "whatsapp:+" + cleanPhone;
@@ -155,7 +177,7 @@ public class WhatsAppService {
                     .POST(HttpRequest.BodyPublishers.ofString(form))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() == 201 || response.statusCode() == 200) {
                 log.info("✅ WhatsApp alert successfully sent to {} via Twilio", toWhatsApp);
                 return true;

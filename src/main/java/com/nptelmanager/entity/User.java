@@ -66,6 +66,24 @@ public class User {
     @Column(nullable = false)
     private boolean whatsappNotificationsEnabled = true;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean emailVerified = false;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean phoneVerified = false;
+
+    @Column(length = 10)
+    private String emailOtp;
+
+    private LocalDateTime emailOtpExpiry;
+
+    @Column(length = 10)
+    private String phoneOtp;
+
+    private LocalDateTime phoneOtpExpiry;
+
     @Column(length = 100)
     private String resetToken;
 
@@ -85,6 +103,10 @@ public class User {
     @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Notification> notifications = new HashSet<>();
+
+    public boolean isFullyVerified() {
+        return emailVerified && (phone == null || phone.isBlank() || phoneVerified);
+    }
 
     public enum Role {
         STUDENT, ADMIN

@@ -7,6 +7,29 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link th:href="@{/css/main.css}" rel="stylesheet">
+    <style>
+        #collegeSearchInput {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        #collegeDropdown {
+            max-height: 220px;
+            overflow-y: auto;
+            border-top: none;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+            z-index: 1000;
+        }
+        .college-option {
+            cursor: pointer;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.85rem;
+        }
+        .college-option:hover, .college-option.active {
+            background-color: #0d6efd;
+            color: #fff;
+        }
+    </style>
 </head>
 <body class="bg-light py-5">
 <div class="container">
@@ -52,12 +75,45 @@
                                    placeholder="Min. 6 characters" required minlength="6">
                             <div class="invalid-feedback" th:errors="*{password}"></div>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-3" id="collegePickerWrapper">
                             <label class="form-label small fw-semibold">Institution / College Name *</label>
-                            <input type="text" th:field="*{college}" class="form-control"
-                                   th:classappend="${#fields.hasErrors('college')} ? 'is-invalid'"
-                                   placeholder="e.g. National Engineering College, IIT Madras, Anna University" maxlength="150" required>
+
+                            <!-- Hidden actual field submitted with form -->
+                            <input type="hidden" th:field="*{college}" id="collegeHiddenInput">
+
+                            <!-- Search box -->
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-search text-muted"></i></span>
+                                    <input type="text" id="collegeSearchInput" class="form-control"
+                                           placeholder="Type to search Tamil Nadu colleges..."
+                                           autocomplete="off"
+                                           th:value="${user.college}"
+                                           oninput="filterColleges(this.value)"
+                                           onfocus="showCollegeDropdown()">
+                                </div>
+                                <!-- Dropdown list -->
+                                <div id="collegeDropdown" class="list-group position-absolute w-100 shadow d-none border">
+                                    <div th:each="c : ${colleges}"
+                                         class="college-option list-group-item list-group-item-action"
+                                         th:text="${c}"
+                                         th:attr="data-value=${c}"
+                                         onclick="selectCollege(this)"></div>
+                                </div>
+                            </div>
+
+                            <!-- Custom entry field (shown when "Other" is selected) -->
+                            <div id="customCollegeWrapper" class="mt-2 d-none">
+                                <input type="text" id="customCollegeInput" class="form-control form-control-sm"
+                                       placeholder="Enter your institution / college name"
+                                       maxlength="150"
+                                       oninput="document.getElementById('collegeHiddenInput').value = this.value">
+                            </div>
+
                             <div class="invalid-feedback" th:errors="*{college}"></div>
+                            <div class="form-text" style="font-size:0.75rem;">
+                                <i class="bi bi-geo-alt me-1 text-primary"></i>Tamil Nadu colleges listed. Select <em>"Other"</em> to type your own.
+                            </div>
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-6">
@@ -98,5 +154,78 @@
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const dropdown      = document.getElementById('collegeDropdown');
+    const searchInput   = document.getElementById('collegeSearchInput');
+    const hiddenInput   = document.getElementById('collegeHiddenInput');
+    const customWrapper = document.getElementById('customCollegeWrapper');
+    const customInput   = document.getElementById('customCollegeInput');
+    const allOptions    = Array.from(dropdown ? dropdown.querySelectorAll('.college-option') : []);
+
+    function showCollegeDropdown() {
+        if (dropdown) dropdown.classList.remove('d-none');
+        filterColleges(searchInput ? searchInput.value : '');
+    }
+
+    function filterColleges(query) {
+        if (!dropdown) return;
+        const q = query.trim().toLowerCase();
+        let anyVisible = false;
+        allOptions.forEach(opt => {
+            const match = opt.textContent.toLowerCase().includes(q);
+            opt.style.display = match ? '' : 'none';
+            if (match) anyVisible = true;
+        });
+        dropdown.classList.toggle('d-none', !anyVisible);
+    }
+
+    function selectCollege(el) {
+        const val = el.getAttribute('data-value');
+        if (searchInput) searchInput.value = val;
+        if (hiddenInput) hiddenInput.value = val;
+        if (dropdown) dropdown.classList.add('d-none');
+
+        const isOther = val === 'Other (Type your institution name)';
+        if (customWrapper) customWrapper.classList.toggle('d-none', !isOther);
+        if (isOther) {
+            if (hiddenInput) hiddenInput.value = '';
+            if (customInput) customInput.focus();
+        }
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', function(e) {
+        if (dropdown && searchInput && !searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add('d-none');
+            // If search box has a value not matching exactly, keep it as custom
+            if (hiddenInput && !hiddenInput.value && searchInput.value.trim()) {
+                hiddenInput.value = searchInput.value.trim();
+            }
+        }
+    });
+
+    // Pre-select on page load if college already set (validation failure case)
+    window.addEventListener('DOMContentLoaded', function() {
+        if (hiddenInput && hiddenInput.value && searchInput) {
+            searchInput.value = hiddenInput.value;
+            const isOther = hiddenInput.value === 'Other (Type your institution name)';
+            if (customWrapper) customWrapper.classList.toggle('d-none', !isOther);
+        }
+    });
+
+    // Validate college is filled before form submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const college = hiddenInput ? hiddenInput.value.trim() : '';
+        if (!college) {
+            e.preventDefault();
+            if (searchInput) {
+                searchInput.setCustomValidity('Please select or enter your institution name.');
+                searchInput.reportValidity();
+            }
+        } else {
+            if (searchInput) searchInput.setCustomValidity('');
+        }
+    });
+</script>
 </body>
 </html>
