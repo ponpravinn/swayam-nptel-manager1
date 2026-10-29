@@ -228,7 +228,10 @@
                         </td>
                         <td>
                             <div class="small fw-semibold user-college" th:text="${u.college ?: '-'}">College</div>
-                            <div class="text-muted user-dept" style="font-size:0.72rem;" th:text="${u.department ?: '-'}">Dept</div>
+                            <div class="text-muted user-dept" style="font-size:0.72rem;">
+                                <span th:text="${u.department ?: '-'}">Dept</span>
+                                <span th:if="${u.branch != null and !u.branch.isBlank()}" th:text="' • ' + ${u.branch}"> • Branch</span>
+                            </div>
                         </td>
                         <td class="small font-monospace user-roll" th:text="${u.rollNumber ?: '-'}">-</td>
                         <td>

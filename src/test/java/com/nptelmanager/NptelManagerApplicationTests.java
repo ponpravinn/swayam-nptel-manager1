@@ -93,12 +93,14 @@ class NptelManagerApplicationTests {
     @Order(4)
     void testPasswordIsHashed() {
         User user = User.builder()
+            .firstName("Hash")
+            .lastName("Test")
             .fullName("Hash Test")
             .email("hash@example.com")
-            .password("plaintext123")
+            .password("Plaintext@123")
             .build();
         User saved = userService.register(user);
-        assertThat(saved.getPassword()).doesNotContain("plaintext123");
+        assertThat(saved.getPassword()).doesNotContain("Plaintext@123");
         assertThat(saved.getPassword()).startsWith("$2a$"); // BCrypt prefix
     }
 

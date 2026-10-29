@@ -48,6 +48,8 @@ public class DataInitializer implements CommandLineRunner {
         // 1. Ensure Admin and Student accounts exist
         User admin = userRepository.findByEmail("admin@nptelmanager.com")
             .orElseGet(() -> userRepository.save(User.builder()
+                .firstName("NPTEL")
+                .lastName("Admin")
                 .fullName("NPTEL Admin / SPOC")
                 .email("admin@nptelmanager.com")
                 .password(passwordEncoder.encode("Admin@123"))
@@ -64,13 +66,16 @@ public class DataInitializer implements CommandLineRunner {
 
         User student = userRepository.findByEmail("student@demo.com")
             .orElseGet(() -> userRepository.save(User.builder()
+                .firstName("Demo")
+                .lastName("Student")
                 .fullName("Demo Student")
                 .email("student@demo.com")
                 .password(passwordEncoder.encode("Student@123"))
                 .role(User.Role.STUDENT)
                 .phone("+91 9876543210")
                 .college("Engineering College")
-                .department("Computer Science and Engineering")
+                .department("Department of Computer Science & Engineering")
+                .branch("Computer Science and Engineering (CSE)")
                 .rollNumber("CSE202401")
                 .enabled(true)
                 .emailVerified(true)
@@ -79,7 +84,10 @@ public class DataInitializer implements CommandLineRunner {
                 .build()));
 
         if (student.getPhone() == null || student.getPhone().isBlank() || !student.isEmailVerified()) {
+            student.setFirstName("Demo");
+            student.setLastName("Student");
             student.setPhone("+91 9876543210");
+            student.setBranch("Computer Science and Engineering (CSE)");
             student.setEmailVerified(true);
             student.setPhoneVerified(true);
             student.setWhatsappNotificationsEnabled(true);
@@ -338,6 +346,9 @@ public class DataInitializer implements CommandLineRunner {
             "ALTER TABLE users ALTER COLUMN phone VARCHAR(20)",
             "ALTER TABLE users ALTER COLUMN college VARCHAR(150)",
             "ALTER TABLE users ALTER COLUMN department VARCHAR(100)",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR(50)",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(50)",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS branch VARCHAR(100)",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS whatsapp_notifications_enabled BOOLEAN DEFAULT TRUE",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT TRUE",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN DEFAULT TRUE",
@@ -361,6 +372,9 @@ public class DataInitializer implements CommandLineRunner {
             "ALTER TABLE users MODIFY COLUMN phone VARCHAR(20)",
             "ALTER TABLE users MODIFY COLUMN college VARCHAR(150)",
             "ALTER TABLE users MODIFY COLUMN department VARCHAR(100)",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR(50)",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(50)",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS branch VARCHAR(100)",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT TRUE",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN DEFAULT TRUE",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_otp VARCHAR(10)",

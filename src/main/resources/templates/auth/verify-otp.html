@@ -27,7 +27,7 @@
                     <i class="bi bi-shield-check fs-2"></i>
                 </div>
                 <h4 class="fw-bold text-primary mb-1">Verify Your Contact Details</h4>
-                <p class="text-muted small mb-0">Confirm your Email and Phone Number with 6-digit OTP verification</p>
+                <p class="text-muted small mb-0">Separate OTP verification for Email Address and Mobile Phone Number</p>
             </div>
 
             <!-- Global Alerts -->
@@ -46,7 +46,7 @@
             <div th:if="${user == null}" class="card shadow-sm border-0 mb-4">
                 <div class="card-body p-4">
                     <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-envelope me-2 text-primary"></i>Find Your Account</h6>
-                    <p class="text-muted small mb-3">Enter your registered email address to enter or resend your 6-digit OTP codes:</p>
+                    <p class="text-muted small mb-3">Enter your registered email address to view or enter your 6-digit OTP codes:</p>
                     <form th:action="@{/auth/verify-otp}" method="get" class="d-flex gap-2">
                         <input type="email" name="email" class="form-control" placeholder="your@email.com" required autofocus>
                         <button type="submit" class="btn btn-primary px-3 text-nowrap">
@@ -67,7 +67,7 @@
                                 <span class="badge bg-primary ms-1" style="font-size:0.65rem;">Active</span>
                             </div>
                             <div class="small text-muted mt-1" style="font-size:0.75rem;">
-                                Live OTPs generated for local evaluation without external SMTP / SMS gateways:
+                                Live OTPs generated for local evaluation without external SMS/SMTP gateways:
                             </div>
                             <div class="mt-2 d-flex flex-wrap gap-3 small">
                                 <span th:if="${devEmailOtp != null}">
@@ -78,10 +78,18 @@
                                 </span>
                             </div>
                         </div>
-                        <div>
-                            <button type="button" class="btn btn-sm btn-outline-primary shadow-sm" onclick="autoFillOtps()">
-                                <i class="bi bi-lightning-fill me-1"></i> Auto-fill OTPs
+                        <div class="d-flex flex-column gap-1">
+                            <button type="button" class="btn btn-sm btn-primary shadow-sm" onclick="autoFillBothOtps()">
+                                <i class="bi bi-lightning-fill me-1"></i> Auto-fill Both
                             </button>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary" onclick="autoFillEmailOnly()" title="Fill Email OTP only">
+                                    Fill Email
+                                </button>
+                                <button type="button" class="btn btn-outline-success" onclick="autoFillPhoneOnly()" title="Fill Phone OTP only">
+                                    Fill Phone
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -92,14 +100,14 @@
                 <div class="card-body p-4">
                     <div class="display-6 text-success mb-2"><i class="bi bi-patch-check-fill"></i></div>
                     <h5 class="fw-bold text-success mb-1">Account Fully Verified!</h5>
-                    <p class="text-muted small mb-3">Both your Email and Mobile / WhatsApp number are confirmed and your account is active.</p>
+                    <p class="text-muted small mb-3">Both your Email Address and Mobile Phone Number have been confirmed. Your account is now active.</p>
                     <a th:href="@{/auth/login}" class="btn btn-success px-4 py-2 fw-semibold shadow-sm">
                         <i class="bi bi-box-arrow-in-right me-2"></i>Proceed to Sign In
                     </a>
                 </div>
             </div>
 
-            <!-- Card 1: Email Verification -->
+            <!-- CARD 1: SEPARATE EMAIL VERIFICATION -->
             <div th:if="${user != null}" class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2">
@@ -108,16 +116,16 @@
                             <i class="bi bi-envelope-fill"></i>
                         </div>
                         <div>
-                            <h6 class="fw-bold mb-0">Step 1: Email Verification</h6>
+                            <h6 class="fw-bold mb-0">1. Verify Email Address</h6>
                             <small class="text-muted" th:text="${email}">student@example.com</small>
                         </div>
                     </div>
                     <div>
                         <span th:if="${emailVerified}" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
-                            <i class="bi bi-check-circle-fill me-1"></i> Verified
+                            <i class="bi bi-check-circle-fill me-1"></i> Email Verified
                         </span>
                         <span th:unless="${emailVerified}" class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">
-                            <i class="bi bi-clock me-1"></i> Pending OTP
+                            <i class="bi bi-clock me-1"></i> Pending Verification
                         </span>
                     </div>
                 </div>
@@ -131,32 +139,32 @@
 
                     <div th:if="${emailVerified}" class="text-center py-2">
                         <div class="text-success small fw-semibold">
-                            <i class="bi bi-check2-circle fs-4 d-block mb-1"></i>
-                            Your email address is confirmed for official portal notifications.
+                            <i class="bi bi-check2-circle fs-3 d-block mb-1 text-success"></i>
+                            Your email address is confirmed!
                         </div>
                     </div>
 
                     <div th:unless="${emailVerified}">
                         <p class="small text-muted mb-3">
-                            A 6-digit confirmation code has been dispatched to <strong><span th:text="${email}"></span></strong>.
+                            Enter the 6-digit verification code sent to <strong><span th:text="${email}"></span></strong>:
                         </p>
                         <form th:action="@{/auth/verify-otp/email}" method="post">
                             <input type="hidden" name="email" th:value="${email}">
                             <div class="mb-3">
-                                <label class="form-label small fw-semibold">Enter 6-Digit Email OTP</label>
+                                <label class="form-label small fw-semibold">6-Digit Email OTP</label>
                                 <input type="text" id="emailOtpInput" name="otp" class="form-control otp-input"
                                        placeholder="••••••" maxlength="6" pattern="[0-9]{6}" required autocomplete="off">
-                                <div class="form-text small" style="font-size:0.75rem;">Code is valid for 15 minutes.</div>
+                                <div class="form-text small" style="font-size:0.75rem;">Valid for 15 minutes.</div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <button type="submit" class="btn btn-primary px-4">
-                                    <i class="bi bi-check-lg me-1"></i> Verify Email
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm">
+                                    <i class="bi bi-shield-check me-1"></i> Verify Email OTP
                                 </button>
                         </form>
                                 <form th:action="@{/auth/verify-otp/resend}" method="post" class="d-inline">
                                     <input type="hidden" name="email" th:value="${email}">
                                     <input type="hidden" name="type" value="email">
-                                    <button type="submit" class="btn btn-link text-decoration-none btn-sm text-secondary">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">
                                         <i class="bi bi-arrow-clockwise me-1"></i> Resend Email OTP
                                     </button>
                                 </form>
@@ -165,7 +173,7 @@
                 </div>
             </div>
 
-            <!-- Card 2: Phone / WhatsApp Verification -->
+            <!-- CARD 2: SEPARATE PHONE / WHATSAPP VERIFICATION -->
             <div th:if="${hasPhone}" class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2">
@@ -174,16 +182,16 @@
                             <i class="bi bi-whatsapp"></i>
                         </div>
                         <div>
-                            <h6 class="fw-bold mb-0">Step 2: Mobile / WhatsApp Verification</h6>
+                            <h6 class="fw-bold mb-0">2. Verify Mobile Phone Number</h6>
                             <small class="text-muted" th:text="${user.phone}">+91 9876543210</small>
                         </div>
                     </div>
                     <div>
                         <span th:if="${phoneVerified}" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
-                            <i class="bi bi-check-circle-fill me-1"></i> Verified
+                            <i class="bi bi-check-circle-fill me-1"></i> Phone Verified
                         </span>
                         <span th:unless="${phoneVerified}" class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">
-                            <i class="bi bi-clock me-1"></i> Pending OTP
+                            <i class="bi bi-clock me-1"></i> Pending Verification
                         </span>
                     </div>
                 </div>
@@ -197,32 +205,32 @@
 
                     <div th:if="${phoneVerified}" class="text-center py-2">
                         <div class="text-success small fw-semibold">
-                            <i class="bi bi-check2-circle fs-4 d-block mb-1"></i>
-                            Your mobile number is confirmed for automated WhatsApp assignment and exam alerts.
+                            <i class="bi bi-check2-circle fs-3 d-block mb-1 text-success"></i>
+                            Your phone number is confirmed for WhatsApp notifications!
                         </div>
                     </div>
 
                     <div th:unless="${phoneVerified}">
                         <p class="small text-muted mb-3">
-                            A 6-digit confirmation code has been dispatched to <strong><span th:text="${user.phone}"></span></strong> via WhatsApp / SMS.
+                            Enter the 6-digit verification code dispatched to <strong><span th:text="${user.phone}"></span></strong> via WhatsApp / SMS:
                         </p>
                         <form th:action="@{/auth/verify-otp/phone}" method="post">
                             <input type="hidden" name="email" th:value="${email}">
                             <div class="mb-3">
-                                <label class="form-label small fw-semibold">Enter 6-Digit Phone OTP</label>
+                                <label class="form-label small fw-semibold">6-Digit Phone OTP</label>
                                 <input type="text" id="phoneOtpInput" name="otp" class="form-control otp-input"
                                        placeholder="••••••" maxlength="6" pattern="[0-9]{6}" required autocomplete="off">
-                                <div class="form-text small" style="font-size:0.75rem;">Code is valid for 15 minutes.</div>
+                                <div class="form-text small" style="font-size:0.75rem;">Valid for 15 minutes.</div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <button type="submit" class="btn btn-success px-4">
-                                    <i class="bi bi-check-lg me-1"></i> Verify Phone
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <button type="submit" class="btn btn-success px-4 fw-semibold shadow-sm">
+                                    <i class="bi bi-shield-check me-1"></i> Verify Phone OTP
                                 </button>
                         </form>
                                 <form th:action="@{/auth/verify-otp/resend}" method="post" class="d-inline">
                                     <input type="hidden" name="email" th:value="${email}">
                                     <input type="hidden" name="type" value="phone">
-                                    <button type="submit" class="btn btn-link text-decoration-none btn-sm text-secondary">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">
                                         <i class="bi bi-arrow-clockwise me-1"></i> Resend WhatsApp OTP
                                     </button>
                                 </form>
@@ -248,12 +256,20 @@
     const devEmailCode = /*[[${devEmailOtp}]]*/ '';
     const devPhoneCode = /*[[${devPhoneOtp}]]*/ '';
 
-    function autoFillOtps() {
+    function autoFillBothOtps() {
+        autoFillEmailOnly();
+        autoFillPhoneOnly();
+    }
+
+    function autoFillEmailOnly() {
         const emailInput = document.getElementById('emailOtpInput');
-        const phoneInput = document.getElementById('phoneOtpInput');
         if (emailInput && devEmailCode) {
             emailInput.value = devEmailCode;
         }
+    }
+
+    function autoFillPhoneOnly() {
+        const phoneInput = document.getElementById('phoneOtpInput');
         if (phoneInput && devPhoneCode) {
             phoneInput.value = devPhoneCode;
         }

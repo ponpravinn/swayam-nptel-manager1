@@ -19,8 +19,15 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Size(min = 2, max = 100)
+    @Size(max = 50, message = "First name cannot exceed 50 characters")
+    @Column(length = 50)
+    private String firstName;
+
+    @Size(max = 50, message = "Second/Last name cannot exceed 50 characters")
+    @Column(length = 50)
+    private String lastName;
+
+    @Size(max = 100)
     @Column(nullable = false, length = 100)
     private String fullName;
 
@@ -44,6 +51,10 @@ public class User {
     @Size(max = 100, message = "Department name cannot exceed 100 characters")
     @Column(length = 100)
     private String department;
+
+    @Size(max = 100, message = "Branch name cannot exceed 100 characters")
+    @Column(length = 100)
+    private String branch;
 
     @Size(max = 50, message = "Roll number cannot exceed 50 characters")
     @Column(length = 50)
@@ -106,6 +117,40 @@ public class User {
 
     public boolean isFullyVerified() {
         return emailVerified && (phone == null || phone.isBlank() || phoneVerified);
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void syncFullName() {
+        String first = firstName != null ? firstName.trim() : "";
+        String last = lastName != null ? lastName.trim() : "";
+        if (!first.isEmpty() || !last.isEmpty()) {
+            this.fullName = (first + " " + last).trim();
+        } else if (this.fullName != null) {
+            this.fullName = this.fullName.trim();
+        }
+    }
+
+    public String getFirstName() {
+        if (firstName != null && !firstName.isBlank()) {
+            return firstName;
+        }
+        if (fullName != null && !fullName.isBlank()) {
+            int idx = fullName.indexOf(' ');
+            return idx > 0 ? fullName.substring(0, idx) : fullName;
+        }
+        return "";
+    }
+
+    public String getLastName() {
+        if (lastName != null && !lastName.isBlank()) {
+            return lastName;
+        }
+        if (fullName != null && !fullName.isBlank()) {
+            int idx = fullName.indexOf(' ');
+            return idx > 0 ? fullName.substring(idx + 1) : "";
+        }
+        return "";
     }
 
     public enum Role {

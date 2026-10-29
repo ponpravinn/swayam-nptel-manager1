@@ -18,12 +18,15 @@ public class SettingsController {
 
     private final UserService userService;
     private final TamilNaduCollegeService collegeService;
+    private final com.nptelmanager.service.DepartmentBranchService departmentBranchService;
 
     @GetMapping
     public String settingsPage(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         User student = userService.getByEmail(userDetails.getUsername());
         model.addAttribute("student", student);
         model.addAttribute("colleges", collegeService.getAllColleges());
+        model.addAttribute("departments", departmentBranchService.getAllDepartments());
+        model.addAttribute("branches", departmentBranchService.getAllBranches());
         return "settings/settings";
     }
 

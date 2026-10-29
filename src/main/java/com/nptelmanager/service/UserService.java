@@ -40,9 +40,22 @@ public class UserService {
             throw new IllegalArgumentException("An account with this email already exists: " + cleanEmail);
         }
         user.setEmail(cleanEmail);
-        if (user.getFullName() != null) user.setFullName(user.getFullName().trim());
+
+        if (user.getFirstName() != null) user.setFirstName(user.getFirstName().trim());
+        if (user.getLastName() != null) user.setLastName(user.getLastName().trim());
+        user.syncFullName();
+        if (user.getFullName() == null || user.getFullName().isBlank()) {
+            throw new IllegalArgumentException("First name and second/last name are required.");
+        }
+
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            throw new IllegalArgumentException("Password is required.");
+        }
+        validatePasswordStrength(user.getPassword());
+
         if (user.getCollege() != null) user.setCollege(user.getCollege().trim());
         if (user.getDepartment() != null) user.setDepartment(user.getDepartment().trim());
+        if (user.getBranch() != null) user.setBranch(user.getBranch().trim());
         if (user.getRollNumber() != null) user.setRollNumber(user.getRollNumber().trim());
         if (user.getPhone() != null) user.setPhone(user.getPhone().trim());
 
@@ -66,6 +79,28 @@ public class UserService {
         return saved;
     }
 
+    /**
+     * Validates that the password meets security requirements:
+     * - Minimum 6 characters
+     * - At least one capital letter (A-Z)
+     * - At least one numeric digit (0-9)
+     * - At least one special symbol (e.g. @, #, $, %, !)
+     */
+    public static void validatePasswordStrength(String password) {
+        if (password == null || password.length() < 6) {
+            throw new IllegalArgumentException("Password must be at least 6 characters long.");
+        }
+        if (!password.chars().anyMatch(Character::isUpperCase)) {
+            throw new IllegalArgumentException("Password must contain at least one capital letter (A-Z).");
+        }
+        if (!password.chars().anyMatch(Character::isDigit)) {
+            throw new IllegalArgumentException("Password must contain at least one number (0-9).");
+        }
+        if (password.chars().allMatch(Character::isLetterOrDigit)) {
+            throw new IllegalArgumentException("Password must contain at least one special symbol (e.g. @, #, $, %, !).");
+        }
+    }
+
     @Transactional(readOnly = true)
     public Optional<User> findByEmail(String email) {
         if (email == null) return Optional.empty();
@@ -82,10 +117,14 @@ public class UserService {
     public User updateProfile(Long userId, User updatedUser) {
         User existing = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
-        existing.setFullName(updatedUser.getFullName());
+        if (updatedUser.getFirstName() != null) existing.setFirstName(updatedUser.getFirstName().trim());
+        if (updatedUser.getLastName() != null) existing.setLastName(updatedUser.getLastName().trim());
+        if (updatedUser.getFullName() != null) existing.setFullName(updatedUser.getFullName().trim());
+        existing.syncFullName();
         existing.setPhone(updatedUser.getPhone());
         existing.setCollege(updatedUser.getCollege());
         existing.setDepartment(updatedUser.getDepartment());
+        existing.setBranch(updatedUser.getBranch());
         existing.setRollNumber(updatedUser.getRollNumber());
         existing.setEmailNotificationsEnabled(updatedUser.isEmailNotificationsEnabled());
         existing.setWhatsappNotificationsEnabled(updatedUser.isWhatsappNotificationsEnabled());
@@ -98,6 +137,7 @@ public class UserService {
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new IllegalArgumentException("Current password is incorrect.");
         }
+        validatePasswordStrength(newPassword);
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }

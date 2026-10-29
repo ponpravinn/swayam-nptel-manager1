@@ -263,10 +263,12 @@ public class AdminController {
     public org.springframework.http.ResponseEntity<byte[]> exportUsersCsv() {
         List<User> users = userRepository.findAll();
         StringBuilder csv = new StringBuilder();
-        csv.append("User ID,Full Name,Email,Email Verified,Phone,Phone Verified,Institution / College,Department,Roll Number,Role,Status,Registered At\n");
+        csv.append("User ID,First Name,Second Name,Full Name,Email,Email Verified,Phone,Phone Verified,Institution / College,Department,Branch,Roll Number,Role,Status,Registered At\n");
         for (User u : users) {
-            csv.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+            csv.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
                 u.getId() != null ? u.getId() : "",
+                u.getFirstName() != null ? u.getFirstName().replace("\"", "\"\"") : "",
+                u.getLastName() != null ? u.getLastName().replace("\"", "\"\"") : "",
                 u.getFullName() != null ? u.getFullName().replace("\"", "\"\"") : "",
                 u.getEmail() != null ? u.getEmail() : "",
                 u.isEmailVerified() ? "VERIFIED" : "UNVERIFIED",
@@ -274,6 +276,7 @@ public class AdminController {
                 u.isPhoneVerified() ? "VERIFIED" : "UNVERIFIED",
                 u.getCollege() != null ? u.getCollege().replace("\"", "\"\"") : "",
                 u.getDepartment() != null ? u.getDepartment().replace("\"", "\"\"") : "",
+                u.getBranch() != null ? u.getBranch().replace("\"", "\"\"") : "",
                 u.getRollNumber() != null ? u.getRollNumber() : "",
                 u.getRole() != null ? u.getRole().name() : "",
                 u.isEnabled() ? "Active" : "Disabled",

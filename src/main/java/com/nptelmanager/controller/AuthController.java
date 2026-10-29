@@ -21,6 +21,7 @@ public class AuthController {
 
     private final UserService userService;
     private final TamilNaduCollegeService collegeService;
+    private final com.nptelmanager.service.DepartmentBranchService departmentBranchService;
 
     @GetMapping("/login")
     public String loginPage(@RequestParam(required = false) String error,
@@ -37,6 +38,8 @@ public class AuthController {
     public String registerPage(Model model) {
         model.addAttribute("user", new User());
         model.addAttribute("colleges", collegeService.getAllColleges());
+        model.addAttribute("departments", departmentBranchService.getAllDepartments());
+        model.addAttribute("branches", departmentBranchService.getAllBranches());
         return "auth/register";
     }
 
@@ -47,6 +50,8 @@ public class AuthController {
                            Model model) {
         if (result.hasErrors()) {
             model.addAttribute("colleges", collegeService.getAllColleges());
+            model.addAttribute("departments", departmentBranchService.getAllDepartments());
+            model.addAttribute("branches", departmentBranchService.getAllBranches());
             return "auth/register";
         }
         try {
@@ -57,10 +62,14 @@ public class AuthController {
         } catch (IllegalArgumentException e) {
             model.addAttribute("errorMsg", e.getMessage());
             model.addAttribute("colleges", collegeService.getAllColleges());
+            model.addAttribute("departments", departmentBranchService.getAllDepartments());
+            model.addAttribute("branches", departmentBranchService.getAllBranches());
             return "auth/register";
         } catch (Exception e) {
             model.addAttribute("errorMsg", "Registration error: " + (e.getMessage() != null ? e.getMessage() : "Please check your inputs and try again."));
             model.addAttribute("colleges", collegeService.getAllColleges());
+            model.addAttribute("departments", departmentBranchService.getAllDepartments());
+            model.addAttribute("branches", departmentBranchService.getAllBranches());
             return "auth/register";
         }
     }

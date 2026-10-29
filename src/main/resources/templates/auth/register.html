@@ -29,18 +29,21 @@
             background-color: #0d6efd;
             color: #fff;
         }
+        .rule-item {
+            transition: color 0.2s ease;
+        }
     </style>
 </head>
 <body class="bg-light py-5">
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
+        <div class="col-md-7 col-lg-6">
             <div class="text-center mb-4">
-                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm"
                      style="width:64px;height:64px;">
                     <i class="bi bi-mortarboard-fill fs-2"></i>
                 </div>
-                <h4 class="fw-bold text-primary mb-0">Create Account</h4>
+                <h4 class="fw-bold text-primary mb-0">Create Student Account</h4>
                 <p class="text-muted small">Join SWAYAM NPTEL Assignment Manager</p>
             </div>
 
@@ -51,30 +54,80 @@
                         <span th:text="${errorMsg}"></span>
                     </div>
 
-                    <form th:action="@{/auth/register}" method="post" th:object="${user}" onsubmit="document.getElementById('email').value = document.getElementById('email').value.trim().toLowerCase();">
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold">Full Name *</label>
-                            <input type="text" th:field="*{fullName}" class="form-control"
-                                   th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid'"
-                                   placeholder="Your Full Name" required>
-                            <div class="invalid-feedback" th:errors="*{fullName}"></div>
+                    <form id="registerForm" th:action="@{/auth/register}" method="post" th:object="${user}" onsubmit="return handleFormSubmit();">
+                        
+                        <!-- 1. First Name & Second/Last Name -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">First Name *</label>
+                                <input type="text" id="firstNameInput" th:field="*{firstName}" class="form-control"
+                                       th:classappend="${#fields.hasErrors('firstName')} ? 'is-invalid'"
+                                       placeholder="e.g. Pravin" required maxlength="50"
+                                       oninput="syncFullNameFields()">
+                                <div class="invalid-feedback" th:errors="*{firstName}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Second / Last Name *</label>
+                                <input type="text" id="lastNameInput" th:field="*{lastName}" class="form-control"
+                                       th:classappend="${#fields.hasErrors('lastName')} ? 'is-invalid'"
+                                       placeholder="e.g. Kumar" required maxlength="50"
+                                       oninput="syncFullNameFields()">
+                                <div class="invalid-feedback" th:errors="*{lastName}"></div>
+                            </div>
                         </div>
+
+                        <!-- Hidden fullName field kept in sync for backward compatibility -->
+                        <input type="hidden" id="fullNameHidden" th:field="*{fullName}">
+
+                        <!-- 2. Email Address -->
                         <div class="mb-3">
                             <label class="form-label small fw-semibold">Email Address *</label>
                             <input type="email" id="email" th:field="*{email}" class="form-control"
                                    th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"
                                    placeholder="your@email.com" required
-                                   oninput="this.value = this.value.toLowerCase()">
+                                   oninput="this.value = this.value.toLowerCase().trim()">
                             <div class="invalid-feedback" th:errors="*{email}"></div>
-                            <div class="form-text" style="font-size:0.75rem;">You will use this email address to sign in every time.</div>
+                            <div class="form-text" style="font-size:0.75rem;">
+                                <i class="bi bi-info-circle me-1"></i>A 6-digit verification OTP will be sent to this email.
+                            </div>
                         </div>
+
+                        <!-- 3. Password with Capital, Number & Special Symbol Validation -->
                         <div class="mb-3">
                             <label class="form-label small fw-semibold">Password *</label>
-                            <input type="password" th:field="*{password}" class="form-control"
-                                   th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'"
-                                   placeholder="Min. 6 characters" required minlength="6">
+                            <div class="input-group">
+                                <input type="password" id="passwordInput" th:field="*{password}" class="form-control"
+                                       th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'"
+                                       placeholder="Create strong password" required minlength="6"
+                                       oninput="checkPasswordRequirements(this.value)">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility()" title="Show/Hide Password">
+                                    <i class="bi bi-eye" id="passwordToggleIcon"></i>
+                                </button>
+                            </div>
                             <div class="invalid-feedback" th:errors="*{password}"></div>
+
+                            <!-- Live Password Criteria Checklist -->
+                            <div class="p-2 mt-2 border rounded bg-white" style="font-size:0.75rem;">
+                                <div class="text-muted fw-bold mb-1 d-flex align-items-center gap-1">
+                                    <i class="bi bi-shield-lock text-primary"></i>
+                                    <span>Password Requirements:</span>
+                                </div>
+                                <div id="rule-upper" class="rule-item text-secondary mb-1">
+                                    <i class="bi bi-circle me-1"></i> At least one <strong>Capital letter</strong> (A-Z)
+                                </div>
+                                <div id="rule-digit" class="rule-item text-secondary mb-1">
+                                    <i class="bi bi-circle me-1"></i> At least one <strong>Number</strong> (0-9)
+                                </div>
+                                <div id="rule-special" class="rule-item text-secondary mb-1">
+                                    <i class="bi bi-circle me-1"></i> At least one <strong>Special symbol</strong> (@, #, $, %, !, etc.)
+                                </div>
+                                <div id="rule-length" class="rule-item text-secondary">
+                                    <i class="bi bi-circle me-1"></i> Minimum <strong>6 characters</strong>
+                                </div>
+                            </div>
                         </div>
+
+                        <!-- 4. Institution / College Name (Tamil Nadu List) -->
                         <div class="mb-3" id="collegePickerWrapper">
                             <label class="form-label small fw-semibold">Institution / College Name *</label>
 
@@ -112,37 +165,66 @@
 
                             <div class="invalid-feedback" th:errors="*{college}"></div>
                             <div class="form-text" style="font-size:0.75rem;">
-                                <i class="bi bi-geo-alt me-1 text-primary"></i>Tamil Nadu colleges listed. Select <em>"Other"</em> to type your own.
+                                <i class="bi bi-geo-alt me-1 text-primary"></i>200+ Tamil Nadu colleges available. Select <em>"Other"</em> to type custom name.
                             </div>
                         </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label class="form-label small fw-semibold">Department / Branch *</label>
-                                <input type="text" th:field="*{department}" class="form-control form-control-sm"
-                                       th:classappend="${#fields.hasErrors('department')} ? 'is-invalid'"
-                                       placeholder="e.g. CSE, IT, ECE" maxlength="100" required>
+
+                        <!-- 5. Department (Dropdown) & Branch (Dropdown) Separately -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Department *</label>
+                                <select id="departmentSelect" th:field="*{department}" class="form-select form-select-sm" required onchange="handleDepartmentChange(this.value)">
+                                    <option value="">-- Select Department --</option>
+                                    <option th:each="dept : ${departments}" th:value="${dept}" th:text="${dept}"></option>
+                                </select>
+                                <div id="customDeptWrapper" class="mt-2 d-none">
+                                    <input type="text" id="customDeptInput" class="form-control form-control-sm"
+                                           placeholder="Type custom department name" maxlength="100">
+                                </div>
                                 <div class="invalid-feedback" th:errors="*{department}"></div>
                             </div>
-                            <div class="col-6">
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Branch / Specialization *</label>
+                                <select id="branchSelect" th:field="*{branch}" class="form-select form-select-sm" required onchange="handleBranchChange(this.value)">
+                                    <option value="">-- Select Branch --</option>
+                                    <option th:each="br : ${branches}" th:value="${br}" th:text="${br}"></option>
+                                </select>
+                                <div id="customBranchWrapper" class="mt-2 d-none">
+                                    <input type="text" id="customBranchInput" class="form-control form-control-sm"
+                                           placeholder="Type custom branch name" maxlength="100">
+                                </div>
+                                <div class="invalid-feedback" th:errors="*{branch}"></div>
+                            </div>
+                        </div>
+
+                        <!-- 6. Roll Number & Phone Number -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
                                 <label class="form-label small fw-semibold">Roll / Register No. *</label>
                                 <input type="text" th:field="*{rollNumber}" class="form-control form-control-sm"
                                        th:classappend="${#fields.hasErrors('rollNumber')} ? 'is-invalid'"
                                        placeholder="e.g. 310625243155" maxlength="50" required>
                                 <div class="invalid-feedback" th:errors="*{rollNumber}"></div>
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Phone / WhatsApp Number *</label>
+                                <input type="tel" th:field="*{phone}" class="form-control form-control-sm"
+                                       th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'"
+                                       placeholder="+91 9876543210" maxlength="20" required>
+                                <div class="invalid-feedback" th:errors="*{phone}"></div>
+                            </div>
                         </div>
-                        <div class="mb-4">
-                            <label class="form-label small fw-semibold">Phone / WhatsApp Number *</label>
-                            <input type="tel" th:field="*{phone}" class="form-control"
-                                   th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'"
-                                   placeholder="+91 9876543210" maxlength="20" required>
-                            <div class="invalid-feedback" th:errors="*{phone}"></div>
-                            <div class="form-text" style="font-size:0.75rem;">Used to receive automated WhatsApp reminders for assignment deadlines and exam dates.</div>
+                        <div class="form-text mb-4" style="font-size:0.75rem;">
+                            <i class="bi bi-whatsapp text-success me-1"></i>A separate 6-digit WhatsApp/SMS OTP will be sent to verify your phone number.
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 py-2">
-                            <i class="bi bi-person-plus me-2"></i>Create Account
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm">
+                            <i class="bi bi-person-plus me-2"></i>Create Account &amp; Proceed to OTP Verification
                         </button>
                     </form>
+
                     <hr class="my-3">
                     <p class="text-center small mb-0">
                         Already have an account?
@@ -153,8 +235,81 @@
         </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // 1. Sync First Name and Second Name into hidden fullName
+    function syncFullNameFields() {
+        const first = (document.getElementById('firstNameInput').value || '').trim();
+        const last = (document.getElementById('lastNameInput').value || '').trim();
+        const combined = (first + ' ' + last).trim();
+        document.getElementById('fullNameHidden').value = combined;
+    }
+
+    // 2. Real-time Password Security Requirements Verification
+    function checkPasswordRequirements(pwd) {
+        const hasUpper   = /[A-Z]/.test(pwd);
+        const hasDigit   = /[0-9]/.test(pwd);
+        const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+        const hasLength  = pwd.length >= 6;
+
+        setRuleStatus('rule-upper', hasUpper, 'At least one <strong>Capital letter</strong> (A-Z)');
+        setRuleStatus('rule-digit', hasDigit, 'At least one <strong>Number</strong> (0-9)');
+        setRuleStatus('rule-special', hasSpecial, 'At least one <strong>Special symbol</strong> (@, #, $, %, !, etc.)');
+        setRuleStatus('rule-length', hasLength, 'Minimum <strong>6 characters</strong>');
+
+        return hasUpper && hasDigit && hasSpecial && hasLength;
+    }
+
+    function setRuleStatus(elemId, passed, htmlText) {
+        const el = document.getElementById(elemId);
+        if (!el) return;
+        if (passed) {
+            el.className = 'rule-item text-success mb-1';
+            el.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>' + htmlText;
+        } else {
+            el.className = 'rule-item text-secondary mb-1';
+            el.innerHTML = '<i class="bi bi-circle me-1"></i>' + htmlText;
+        }
+    }
+
+    function togglePasswordVisibility() {
+        const pwdInput = document.getElementById('passwordInput');
+        const icon = document.getElementById('passwordToggleIcon');
+        if (pwdInput.type === 'password') {
+            pwdInput.type = 'text';
+            icon.className = 'bi bi-eye-slash';
+        } else {
+            pwdInput.type = 'password';
+            icon.className = 'bi bi-eye';
+        }
+    }
+
+    // 3. Department & Branch Select Handlers
+    function handleDepartmentChange(val) {
+        const wrapper = document.getElementById('customDeptWrapper');
+        const customIn = document.getElementById('customDeptInput');
+        const isCustom = val.startsWith('Other');
+        wrapper.classList.toggle('d-none', !isCustom);
+        if (isCustom) {
+            customIn.focus();
+            customIn.oninput = function() {
+                // If user types, we keep the value synced on submit
+            };
+        }
+    }
+
+    function handleBranchChange(val) {
+        const wrapper = document.getElementById('customBranchWrapper');
+        const customIn = document.getElementById('customBranchInput');
+        const isCustom = val.startsWith('Other');
+        wrapper.classList.toggle('d-none', !isCustom);
+        if (isCustom) {
+            customIn.focus();
+        }
+    }
+
+    // 4. College Dropdown Search Logic
     const dropdown      = document.getElementById('collegeDropdown');
     const searchInput   = document.getElementById('collegeSearchInput');
     const hiddenInput   = document.getElementById('collegeHiddenInput');
@@ -185,7 +340,7 @@
         if (hiddenInput) hiddenInput.value = val;
         if (dropdown) dropdown.classList.add('d-none');
 
-        const isOther = val === 'Other (Type your institution name)';
+        const isOther = val.startsWith('Other');
         if (customWrapper) customWrapper.classList.toggle('d-none', !isOther);
         if (isOther) {
             if (hiddenInput) hiddenInput.value = '';
@@ -193,37 +348,70 @@
         }
     }
 
-    // Close dropdown on outside click
+    // Close college dropdown on outside click
     document.addEventListener('click', function(e) {
         if (dropdown && searchInput && !searchInput.contains(e.target) && !dropdown.contains(e.target)) {
             dropdown.classList.add('d-none');
-            // If search box has a value not matching exactly, keep it as custom
             if (hiddenInput && !hiddenInput.value && searchInput.value.trim()) {
                 hiddenInput.value = searchInput.value.trim();
             }
         }
     });
 
-    // Pre-select on page load if college already set (validation failure case)
-    window.addEventListener('DOMContentLoaded', function() {
-        if (hiddenInput && hiddenInput.value && searchInput) {
-            searchInput.value = hiddenInput.value;
-            const isOther = hiddenInput.value === 'Other (Type your institution name)';
-            if (customWrapper) customWrapper.classList.toggle('d-none', !isOther);
-        }
-    });
+    // 5. Form Submit Validation
+    function handleFormSubmit() {
+        syncFullNameFields();
 
-    // Validate college is filled before form submit
-    document.querySelector('form').addEventListener('submit', function(e) {
+        // Check password requirements
+        const pwd = document.getElementById('passwordInput').value;
+        if (!checkPasswordRequirements(pwd)) {
+            alert('Password must be at least 6 characters long and contain at least one capital letter (A-Z), one number (0-9), and one special symbol (@, #, $, etc.).');
+            document.getElementById('passwordInput').focus();
+            return false;
+        }
+
+        // Handle custom department if "Other" selected
+        const deptSelect = document.getElementById('departmentSelect');
+        const customDept = document.getElementById('customDeptInput');
+        if (deptSelect.value.startsWith('Other') && customDept.value.trim()) {
+            const opt = document.createElement('option');
+            opt.value = customDept.value.trim();
+            opt.text = customDept.value.trim();
+            deptSelect.appendChild(opt);
+            deptSelect.value = customDept.value.trim();
+        }
+
+        // Handle custom branch if "Other" selected
+        const branchSelect = document.getElementById('branchSelect');
+        const customBranch = document.getElementById('customBranchInput');
+        if (branchSelect.value.startsWith('Other') && customBranch.value.trim()) {
+            const opt = document.createElement('option');
+            opt.value = customBranch.value.trim();
+            opt.text = customBranch.value.trim();
+            branchSelect.appendChild(opt);
+            branchSelect.value = customBranch.value.trim();
+        }
+
+        // Validate college is set
         const college = hiddenInput ? hiddenInput.value.trim() : '';
         if (!college) {
-            e.preventDefault();
             if (searchInput) {
                 searchInput.setCustomValidity('Please select or enter your institution name.');
                 searchInput.reportValidity();
             }
-        } else {
-            if (searchInput) searchInput.setCustomValidity('');
+            return false;
+        }
+
+        return true;
+    }
+
+    // Initialize fields on load
+    window.addEventListener('DOMContentLoaded', function() {
+        syncFullNameFields();
+        if (hiddenInput && hiddenInput.value && searchInput) {
+            searchInput.value = hiddenInput.value;
+            const isOther = hiddenInput.value.startsWith('Other');
+            if (customWrapper) customWrapper.classList.toggle('d-none', !isOther);
         }
     });
 </script>
