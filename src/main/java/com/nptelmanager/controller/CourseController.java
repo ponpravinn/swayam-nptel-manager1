@@ -129,6 +129,19 @@ public class CourseController {
         return "redirect:/courses";
     }
 
+    @GetMapping("/score-calculator")
+    public String generalScoreCalculator(@AuthenticationPrincipal UserDetails userDetails,
+                                         RedirectAttributes ra) {
+        User student = userService.getByEmail(userDetails.getUsername());
+        List<StudentCourse> myCourses = courseService.getStudentCourses(student);
+        if (!myCourses.isEmpty()) {
+            Long firstCourseId = myCourses.get(0).getCourse().getId();
+            return "redirect:/courses/" + firstCourseId + "/score-calculator";
+        }
+        ra.addFlashAttribute("errorMsg", "Please enroll in at least one NPTEL course to predict your score and certificate medal!");
+        return "redirect:/courses";
+    }
+
     @GetMapping("/{id}/score-calculator")
     public String scoreCalculator(@PathVariable Long id,
                                   @RequestParam(required = false) Double examScore,

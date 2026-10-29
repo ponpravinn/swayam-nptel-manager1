@@ -193,6 +193,7 @@ public class UserService {
             throw new IllegalArgumentException("Invalid OTP code. Please check and try again.");
         }
 
+        validatePasswordStrength(newPassword);
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setResetToken(null);
         user.setResetTokenExpiry(null);

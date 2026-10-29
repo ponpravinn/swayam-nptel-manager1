@@ -76,6 +76,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a th:href="@{/courses/score-calculator}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2"
+                   th:classappend="${activePage == 'calculator' ? 'active bg-white bg-opacity-25 rounded mx-2' : ''}">
+                    <i class="bi bi-award"></i> <span>Score Predictor</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a th:href="@{/calendar}" class="nav-link text-white px-3 py-2 d-flex align-items-center gap-2"
                    th:classappend="${activePage == 'calendar' ? 'active bg-white bg-opacity-25 rounded mx-2' : ''}">
                     <i class="bi bi-calendar3"></i> <span>Calendar</span>
